@@ -1,0 +1,19 @@
+{
+  "name": "google-ads-ai-dashboard",
+  "version": "1.0.0",
+  "description": "AI-powered Google Ads analytics dashboard",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.51.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "google-ads-api": "^17.0.0",
+    "googleapis": "^144.0.0"
+  }
+}

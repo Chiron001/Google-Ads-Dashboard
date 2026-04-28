@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google Ads AI Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #0c0e1a; --bg2: #131629; --card: #191c2e; --card2: #1e2236;
+  --border: #252840; --border2: #2e3352;
+  --text: #dde1f5; --text2: #8b90b8; --text3: #555a7a;
+  --accent: #5865f2; --accent2: #6875f5; --accent-bg: rgba(88,101,242,0.12);
+  --green: #22d87b; --green-bg: rgba(34,216,123,0.1);
+  --red: #ff4d6d; --red-bg: rgba(255,77,109,0.1);
+  --orange: #fb923c; --orange-bg: rgba(251,146,60,0.1);
+  --yellow: #fbbf24; --yellow-bg: rgba(251,191,36,0.1);
+  --purple: #a855f7; --teal: #14b8a6;
+  --font: 'Inter', -apple-system, system-ui, sans-serif;
+  --r: 10px; --r-sm: 6px; --shadow: 0 4px 24px rgba(0,0,0,0.5);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: var(--font); background: var(--bg); color: var(--text); font-size: 14px; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ─── AUTH SCREENS ─── */
+.auth-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at 50% 0%, rgba(88,101,242,0.15) 0%, transparent 70%); }
+.auth-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 48px; width: 480px; max-width: 95vw; text-align: center; box-shadow: var(--shadow); }
+.auth-logo { width: 56px; height: 56px; background: var(--accent); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; }
+.auth-logo svg { width: 28px; height: 28px; stroke: white; }
+.auth-card h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+.auth-card p { color: var(--text2); line-height: 1.6; margin-bottom: 32px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: var(--r-sm); font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: all 0.2s; text-decoration: none; font-family: var(--font); }
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(88,101,242,0.4); }
+.btn-secondary { background: var(--card2); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--border); }
+.btn-ghost { background: transparent; color: var(--text2); }
+.btn-ghost:hover { color: var(--text); background: var(--card2); }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid rgba(255,77,109,0.2); }
+.btn-danger:hover { background: var(--red); color: white; }
+.setup-steps { text-align: left; margin: 0 0 24px; }
+.setup-step { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.setup-step:last-child { border-bottom: none; }
+.step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--accent-bg); color: var(--accent); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+.step-title { font-weight: 600; font-size: 13px; margin-bottom: 2px; }
+.step-desc { color: var(--text2); font-size: 12px; line-height: 1.5; }
+.step-desc a { color: var(--accent); text-decoration: none; }
+.step-desc a:hover { text-decoration: underline; }
+.divider { display: flex; align-items: center; gap: 12px; color: var(--text3); font-size: 12px; margin: 20px 0; }
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ─── LAYOUT ─── */
+#app { display: none; height: 100vh; overflow: hidden; }
+.sidebar { width: 228px; height: 100vh; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+.main-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.content-area { flex: 1; overflow-y: auto; padding: 24px; }
+.layout { display: flex; height: 100vh; }
+
+/* ─── SIDEBAR ─── */
+.sidebar-logo { padding: 20px 16px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.sidebar-logo-icon { width: 32px; height: 32px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.sidebar-logo-icon svg { width: 16px; height: 16px; stroke: white; }
+.sidebar-logo-text { font-weight: 700; font-size: 13px; line-height: 1.2; }
+.sidebar-logo-text span { display: block; color: var(--text2); font-weight: 400; font-size: 11px; }
+.nav-section { padding: 12px 8px 4px; }
+.nav-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; padding: 0 8px 6px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--r-sm); cursor: pointer; transition: all 0.15s; color: var(--text2); font-size: 13px; font-weight: 500; margin-bottom: 1px; }
+.nav-item:hover { background: var(--card2); color: var(--text); }
+.nav-item.active { background: var(--accent-bg); color: var(--accent); }
+.nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+.sidebar-bottom { margin-top: auto; padding: 12px 8px; border-top: 1px solid var(--border); }
+.user-info { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: var(--r-sm); }
+.user-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: white; flex-shrink: 0; overflow: hidden; }
+.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.user-name { font-size: 12px; font-weight: 600; line-height: 1.2; }
+.user-email { font-size: 11px; color: var(--text2); }
+
+/* ─── HEADER ─── */
+.header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; background: var(--bg2); flex-shrink: 0; }
+.header-title { font-size: 16px; font-weight: 700; flex: 1; }
+.header-sub { font-size: 12px; color: var(--text2); font-weight: 400; }
+.date-bar { display: flex; align-items: center; gap: 6px; }
+.preset-btn { padding: 5px 10px; border-radius: var(--r-sm); font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--text2); transition: all 0.15s; font-family: var(--font); }
+.preset-btn:hover { background: var(--card2); color: var(--text); }
+.preset-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+.date-input { background: var(--card); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text); padding: 5px 10px; font-size: 12px; font-family: var(--font); cursor: pointer; }
+.date-input:focus { outline: none; border-color: var(--accent); }
+.date-sep { color: var(--text3); font-size: 12px; }
+
+/* ─── DEMO BANNER ─── */
+.demo-banner { background: linear-gradient(135deg, rgba(251,146,60,0.15), rgba(251,191,36,0.1)); border-bottom: 1px solid rgba(251,146,60,0.3); padding: 8px 24px; display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--orange); }
+.demo-banner b { font-weight: 600; }
+.demo-banner a { color: var(--accent); text-decoration: none; margin-left: auto; font-weight: 500; }
+.demo-banner a:hover { text-decoration: underline; }
+
+/* ─── KPI CARDS ─── */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.kpi-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; transition: border-color 0.2s; }
+.kpi-card:hover { border-color: var(--border2); }
+.kpi-label { font-size: 11px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.kpi-value { font-size: 24px; font-weight: 700; line-height: 1; margin-bottom: 6px; }
+.kpi-change { font-size: 11px; font-weight: 500; display: flex; align-items: center; gap: 3px; }
+.kpi-change.up { color: var(--green); }
+.kpi-change.down { color: var(--red); }
+.kpi-change.neutral { color: var(--text3); }
+
+/* ─── CHARTS ─── */
+.chart-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 20px; }
+.chart-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 20px; }
+.chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.chart-title { font-size: 13px; font-weight: 600; }
+.chart-subtitle { font-size: 11px; color: var(--text2); }
+.metric-tabs { display: flex; gap: 4px; }
+.metric-tab { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--text2); transition: all 0.15s; font-family: var(--font); }
+.metric-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+.chart-wrap { position: relative; height: 220px; }
+
+/* ─── TABLES ─── */
+.table-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; margin-bottom: 20px; }
+.table-toolbar { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.table-title { font-size: 13px; font-weight: 600; flex: 1; }
+.search-input { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 6px 12px; color: var(--text); font-size: 12px; font-family: var(--font); width: 200px; }
+.search-input::placeholder { color: var(--text3); }
+.search-input:focus { outline: none; border-color: var(--accent); }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { background: var(--bg2); color: var(--text2); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 10px 14px; text-align: left; white-space: nowrap; cursor: pointer; user-select: none; border-bottom: 1px solid var(--border); }
+th:hover { color: var(--text); }
+th.sort-asc::after { content: ' ↑'; }
+th.sort-desc::after { content: ' ↓'; }
+td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; white-space: nowrap; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.02); }
+.table-footer { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-top: 1px solid var(--border); color: var(--text2); font-size: 11px; }
+.pagination { display: flex; gap: 4px; }
+.page-btn { width: 26px; height: 26px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--text2); font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: var(--font); transition: all 0.15s; }
+.page-btn:hover { background: var(--card2); color: var(--text); }
+.page-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+.page-btn:disabled { opacity: 0.3; cursor: default; }
+
+/* ─── BADGES ─── */
+.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.badge-green { background: var(--green-bg); color: var(--green); }
+.badge-red { background: var(--red-bg); color: var(--red); }
+.badge-orange { background: var(--orange-bg); color: var(--orange); }
+.badge-gray { background: rgba(255,255,255,0.06); color: var(--text2); }
+.badge-blue { background: var(--accent-bg); color: var(--accent); }
+.badge-purple { background: rgba(168,85,247,0.1); color: var(--purple); }
+
+/* ─── QS BAR ─── */
+.qs-wrap { display: flex; align-items: center; gap: 6px; }
+.qs-num { font-weight: 700; width: 14px; }
+.qs-bar { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.qs-fill { height: 100%; border-radius: 2px; }
+.qs-1,.qs-2,.qs-3 { background: var(--red); }
+.qs-4,.qs-5,.qs-6 { background: var(--orange); }
+.qs-7,.qs-8 { background: var(--yellow); }
+.qs-9,.qs-10 { background: var(--green); }
+
+/* ─── IS BAR ─── */
+.is-bar-wrap { display: flex; align-items: center; gap: 6px; min-width: 100px; }
+.is-bar { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.is-fill { height: 100%; background: var(--accent); border-radius: 2px; }
+
+/* ─── AI INSIGHTS ─── */
+.insights-container { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.insights-full { grid-column: 1 / -1; }
+.insights-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 20px; }
+.insights-card-title { font-size: 13px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.insights-card-title svg { width: 16px; height: 16px; }
+.insight-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.insight-item:last-child { border-bottom: none; padding-bottom: 0; }
+.insight-title { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+.insight-desc { font-size: 12px; color: var(--text2); line-height: 1.55; }
+.severity-high { color: var(--red); }
+.severity-medium { color: var(--orange); }
+.severity-low { color: var(--yellow); }
+.impact-high { color: var(--green); }
+.impact-medium { color: var(--accent); }
+.impact-low { color: var(--text2); }
+.insights-generate { text-align: center; padding: 48px 24px; }
+.insights-generate p { color: var(--text2); margin: 16px 0 24px; font-size: 13px; }
+.generating-wrap { padding: 32px; text-align: center; }
+.pulse { display: inline-block; width: 48px; height: 48px; border-radius: 50%; background: var(--accent-bg); border: 2px solid var(--accent); animation: pulse 1.5s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(0.95)} }
+.generating-wrap p { color: var(--text2); margin-top: 16px; font-size: 13px; }
+
+/* ─── AD PREVIEW ─── */
+.ad-preview { max-width: 260px; }
+.ad-headline { font-size: 12px; font-weight: 600; color: #4285f4; line-height: 1.3; }
+.ad-desc { font-size: 11px; color: var(--text2); line-height: 1.4; margin-top: 2px; }
+.ad-url { font-size: 10px; color: var(--green); }
+
+/* ─── SECTION HEADER ─── */
+.section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.section-title { font-size: 15px; font-weight: 700; }
+.section-desc { font-size: 12px; color: var(--text2); }
+
+/* ─── LOADING ─── */
+.loading-row td { text-align: center; padding: 40px; color: var(--text3); }
+.skeleton { background: linear-gradient(90deg, var(--card2) 25%, var(--border) 50%, var(--card2) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; height: 14px; }
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+/* ─── TOAST ─── */
+#toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.toast-item { background: var(--card2); border: 1px solid var(--border2); border-radius: var(--r-sm); padding: 12px 16px; font-size: 12px; min-width: 200px; max-width: 360px; animation: slideIn 0.3s ease; }
+.toast-item.error { border-color: rgba(255,77,109,0.4); background: var(--red-bg); color: var(--red); }
+@keyframes slideIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* ─── MISC ─── */
+.empty-state { text-align: center; padding: 48px; color: var(--text3); }
+.empty-state svg { width: 40px; height: 40px; stroke: var(--text3); margin-bottom: 12px; }
+.tag { display: inline-flex; align-items: center; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; }
+.tag-exact { background: rgba(88,101,242,0.15); color: var(--accent); }
+.tag-phrase { background: rgba(20,184,166,0.15); color: var(--teal); }
+.tag-broad { background: rgba(168,85,247,0.12); color: var(--purple); }
+.neg { color: var(--red-bg); background: var(--red-bg); }
+.flex { display: flex; }
+.items-center { align-items: center; }
+.gap-2 { gap: 8px; }
+.ml-auto { margin-left: auto; }
+.text-right { text-align: right; }
+.text-muted { color: var(--text2); }
+.text-sm { font-size: 11px; }
+.font-mono { font-family: 'SF Mono', 'Fira Mono', monospace; }
+.w-full { width: 100%; }
+</style>
+</head>
+<body>
+
+<!-- ═══ AUTH SCREEN ═══════════════════════════════════════════════════════════ -->
+<div id="screen-auth" class="auth-wrap" style="display:none">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <svg viewBox="0 0 24 24" fill="none"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+    </div>
+    <h1>Google Ads AI Dashboard</h1>
+    <p>Connect your Google Ads account to get end-to-end analytics powered by Claude AI — campaigns, ad groups, ads, keywords, and actionable insights.</p>
+    <button class="btn btn-primary w-full" onclick="connectGoogle()" style="justify-content:center;padding:12px">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      Connect Google Account
+    </button>
+    <div class="divider">or</div>
+    <button class="btn btn-secondary w-full" onclick="startDemo()" style="justify-content:center">
+      Try with Demo Data
+    </button>
+    <p style="margin-top:20px;font-size:11px;color:var(--text3)">Read-only access. No data is stored. Google Ads API compliant.</p>
+  </div>
+</div>
+
+<!-- ═══ SETUP SCREEN ═══════════════════════════════════════════════════════════ -->
+<div id="screen-setup" class="auth-wrap" style="display:none">
+  <div class="auth-card" style="width:540px">
+    <div class="auth-logo" style="background:var(--orange)">
+      <svg viewBox="0 0 24 24" fill="none"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+    </div>
+    <h1>Setup Required</h1>
+    <p>Configure your environment to connect to the Google Ads API. This is a one-time setup.</p>
+    <div class="setup-steps">
+      <div class="setup-step">
+        <div class="step-num">1</div>
+        <div><div class="step-title">Get a Google Ads Developer Token</div><div class="step-desc">Apply at <a href="https://developers.google.com/google-ads/api/docs/get-started/dev-token" target="_blank">Google Ads API Center</a>. Basic access works for testing your own account.</div></div>
+      </div>
+      <div class="setup-step">
+        <div class="step-num">2</div>
+        <div><div class="step-title">Create OAuth 2.0 Credentials</div><div class="step-desc">Go to <a href="https://console.cloud.google.com" target="_blank">Google Cloud Console</a> → APIs &amp; Services → Credentials. Enable the Google Ads API. Add redirect URI: <code style="color:var(--accent)">http://localhost:3000/api/auth/callback</code></div></div>
+      </div>
+      <div class="setup-step">
+        <div class="step-num">3</div>
+        <div><div class="step-title">Configure .env File</div><div class="step-desc">Copy <code style="color:var(--accent)">.env.example</code> to <code style="color:var(--accent)">.env</code> and fill in your credentials. Optionally add your Anthropic API key for AI insights.</div></div>
+      </div>
+      <div class="setup-step">
+        <div class="step-num">4</div>
+        <div><div class="step-title">Restart the Server</div><div class="step-desc">Run <code style="color:var(--accent)">npm start</code> after editing .env. Then connect your Google account.</div></div>
+      </div>
+    </div>
+    <button class="btn btn-secondary w-full" onclick="startDemo()" style="justify-content:center">
+      Explore with Demo Data Instead
+    </button>
+  </div>
+</div>
+
+<!-- ═══ MAIN APP ═══════════════════════════════════════════════════════════════ -->
+<div id="app">
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">
+          <svg viewBox="0 0 24 24" fill="none"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </div>
+        <div class="sidebar-logo-text">Ads Intelligence<span>Powered by Claude AI</span></div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Analytics</div>
+        <div class="nav-item active" onclick="navigate('overview')" id="nav-overview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1" stroke-width="1.5"/><rect x="14" y="3" width="7" height="7" rx="1" stroke-width="1.5"/><rect x="3" y="14" width="7" height="7" rx="1" stroke-width="1.5"/><rect x="14" y="14" width="7" height="7" rx="1" stroke-width="1.5"/></svg>
+          Overview
+        </div>
+        <div class="nav-item" onclick="navigate('campaigns')" id="nav-campaigns">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          Campaigns
+        </div>
+        <div class="nav-item" onclick="navigate('adgroups')" id="nav-adgroups">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+          Ad Groups
+        </div>
+        <div class="nav-item" onclick="navigate('ads')" id="nav-ads">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+          Ads
+        </div>
+        <div class="nav-item" onclick="navigate('keywords')" id="nav-keywords">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+          Keywords
+        </div>
+        <div class="nav-item" onclick="navigate('searchterms')" id="nav-searchterms">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          Search Terms
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Intelligence</div>
+        <div class="nav-item" onclick="navigate('insights')" id="nav-insights">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+          AI Insights
+        </div>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="user-info">
+          <div class="user-avatar" id="user-avatar">?</div>
+          <div style="flex:1;min-width:0">
+            <div class="user-name" id="user-name">Not connected</div>
+            <div class="user-email" id="user-cid"></div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="logout()" title="Logout" style="padding:4px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- MAIN -->
+    <div class="main-wrap">
+      <div id="demo-banner" class="demo-banner" style="display:none">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span><b>Demo Mode</b> — Showing sample data to illustrate the dashboard. </span>
+        <a href="#" onclick="showAuth();return false">Connect real account →</a>
+      </div>
+
+      <!-- HEADER -->
+      <div class="header">
+        <div>
+          <div class="header-title" id="view-title">Overview</div>
+          <div class="header-sub" id="view-sub">Account performance at a glance</div>
+        </div>
+        <div class="date-bar" id="date-bar">
+          <button class="preset-btn" onclick="setPreset('today')">Today</button>
+          <button class="preset-btn" onclick="setPreset('yesterday')">Yesterday</button>
+          <button class="preset-btn" onclick="setPreset('last7')">7D</button>
+          <button class="preset-btn active" onclick="setPreset('last30')">30D</button>
+          <button class="preset-btn" onclick="setPreset('last90')">90D</button>
+          <button class="preset-btn" onclick="setPreset('thisMonth')">This Mo.</button>
+          <button class="preset-btn" onclick="setPreset('lastMonth')">Last Mo.</button>
+          <span class="date-sep">|</span>
+          <input type="date" class="date-input" id="date-start" onchange="setCustomDate()">
+          <span class="date-sep">–</span>
+          <input type="date" class="date-input" id="date-end" onchange="setCustomDate()">
+          <button class="btn btn-primary btn-sm" onclick="loadCurrentView()">Apply</button>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm" id="btn-export" onclick="exportCSV()" style="display:none">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export
+          </button>
+        </div>
+      </div>
+
+      <!-- CONTENT -->
+      <div class="content-area">
+
+        <!-- ── OVERVIEW ── -->
+        <div id="view-overview">
+          <div class="kpi-grid" id="kpi-grid">
+            <div class="kpi-card"><div class="skeleton" style="width:60%;margin-bottom:10px"></div><div class="skeleton" style="width:40%"></div></div>
+            <div class="kpi-card"><div class="skeleton" style="width:60%;margin-bottom:10px"></div><div class="skeleton" style="width:40%"></div></div>
+            <div class="kpi-card"><div class="skeleton" style="width:60%;margin-bottom:10px"></div><div class="skeleton" style="width:40%"></div></div>
+            <div class="kpi-card"><div class="skeleton" style="width:60%;margin-bottom:10px"></div><div class="skeleton" style="width:40%"></div></div>
+          </div>
+          <div class="chart-grid">
+            <div class="chart-card">
+              <div class="chart-header">
+                <div><div class="chart-title">Performance Over Time</div><div class="chart-subtitle" id="ts-range"></div></div>
+                <div class="metric-tabs">
+                  <button class="metric-tab active" onclick="switchMetric('clicks')">Clicks</button>
+                  <button class="metric-tab" onclick="switchMetric('impressions')">Impressions</button>
+                  <button class="metric-tab" onclick="switchMetric('cost')">Cost</button>
+                  <button class="metric-tab" onclick="switchMetric('conversions')">Conv.</button>
+                </div>
+              </div>
+              <div class="chart-wrap"><canvas id="chart-timeseries"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-header"><div class="chart-title">Device Split</div></div>
+              <div class="chart-wrap"><canvas id="chart-device"></canvas></div>
+            </div>
+          </div>
+          <div class="chart-card" style="margin-bottom:20px">
+            <div class="chart-header"><div class="chart-title">Campaign Spend & ROAS</div></div>
+            <div class="chart-wrap" style="height:180px"><canvas id="chart-campaigns"></canvas></div>
+          </div>
+        </div>
+
+        <!-- ── CAMPAIGNS ── -->
+        <div id="view-campaigns" style="display:none">
+          <div class="table-card">
+            <div class="table-toolbar">
+              <div class="table-title">All Campaigns</div>
+              <input class="search-input" placeholder="Search campaigns..." oninput="filterTable('campaigns',this.value)" id="search-campaigns">
+              <button class="btn btn-secondary btn-sm" onclick="loadView('campaigns')">↻ Refresh</button>
+            </div>
+            <div class="table-wrap"><table id="table-campaigns"><thead><tr>
+              <th onclick="sortBy('campaigns','name')">Campaign</th>
+              <th onclick="sortBy('campaigns','status')">Status</th>
+              <th onclick="sortBy('campaigns','channel')">Type</th>
+              <th onclick="sortBy('campaigns','impressions')" class="text-right">Impr.</th>
+              <th onclick="sortBy('campaigns','clicks')" class="text-right">Clicks</th>
+              <th onclick="sortBy('campaigns','ctr')" class="text-right">CTR</th>
+              <th onclick="sortBy('campaigns','avg_cpc')" class="text-right">CPC</th>
+              <th onclick="sortBy('campaigns','cost')" class="text-right">Spend</th>
+              <th onclick="sortBy('campaigns','conversions')" class="text-right">Conv.</th>
+              <th onclick="sortBy('campaigns','conversion_rate')" class="text-right">Conv%</th>
+              <th onclick="sortBy('campaigns','roas')" class="text-right">ROAS</th>
+              <th onclick="sortBy('campaigns','impression_share')" class="text-right">IS</th>
+            </tr></thead><tbody id="tbody-campaigns"><tr class="loading-row"><td colspan="12">Loading campaigns…</td></tr></tbody></table></div>
+            <div class="table-footer"><span id="count-campaigns"></span><div class="pagination" id="pages-campaigns"></div></div>
+          </div>
+        </div>
+
+        <!-- ── AD GROUPS ── -->
+        <div id="view-adgroups" style="display:none">
+          <div class="table-card">
+            <div class="table-toolbar">
+              <div class="table-title">All Ad Groups</div>
+              <input class="search-input" placeholder="Search ad groups..." oninput="filterTable('adgroups',this.value)" id="search-adgroups">
+              <button class="btn btn-secondary btn-sm" onclick="loadView('adgroups')">↻ Refresh</button>
+            </div>
+            <div class="table-wrap"><table id="table-adgroups"><thead><tr>
+              <th onclick="sortBy('adgroups','campaign_name')">Campaign</th>
+              <th onclick="sortBy('adgroups','name')">Ad Group</th>
+              <th onclick="sortBy('adgroups','status')">Status</th>
+              <th onclick="sortBy('adgroups','impressions')" class="text-right">Impr.</th>
+              <th onclick="sortBy('adgroups','clicks')" class="text-right">Clicks</th>
+              <th onclick="sortBy('adgroups','ctr')" class="text-right">CTR</th>
+              <th onclick="sortBy('adgroups','avg_cpc')" class="text-right">CPC</th>
+              <th onclick="sortBy('adgroups','cost')" class="text-right">Spend</th>
+              <th onclick="sortBy('adgroups','conversions')" class="text-right">Conv.</th>
+              <th onclick="sortBy('adgroups','conversion_rate')" class="text-right">Conv%</th>
+              <th onclick="sortBy('adgroups','roas')" class="text-right">ROAS</th>
+            </tr></thead><tbody id="tbody-adgroups"><tr class="loading-row"><td colspan="11">Loading ad groups…</td></tr></tbody></table></div>
+            <div class="table-footer"><span id="count-adgroups"></span><div class="pagination" id="pages-adgroups"></div></div>
+          </div>
+        </div>
+
+        <!-- ── ADS ── -->
+        <div id="view-ads" style="display:none">
+          <div class="table-card">
+            <div class="table-toolbar">
+              <div class="table-title">All Ads</div>
+              <input class="search-input" placeholder="Search ads..." oninput="filterTable('ads',this.value)" id="search-ads">
+              <button class="btn btn-secondary btn-sm" onclick="loadView('ads')">↻ Refresh</button>
+            </div>
+            <div class="table-wrap"><table id="table-ads"><thead><tr>
+              <th onclick="sortBy('ads','campaign_name')">Campaign</th>
+              <th onclick="sortBy('ads','ad_group_name')">Ad Group</th>
+              <th>Ad Preview</th>
+              <th onclick="sortBy('ads','type')">Type</th>
+              <th onclick="sortBy('ads','status')">Status</th>
+              <th onclick="sortBy('ads','impressions')" class="text-right">Impr.</th>
+              <th onclick="sortBy('ads','clicks')" class="text-right">Clicks</th>
+              <th onclick="sortBy('ads','ctr')" class="text-right">CTR</th>
+              <th onclick="sortBy('ads','cost')" class="text-right">Spend</th>
+              <th onclick="sortBy('ads','conversions')" class="text-right">Conv.</th>
+              <th onclick="sortBy('ads','roas')" class="text-right">ROAS</th>
+            </tr></thead><tbody id="tbody-ads"><tr class="loading-row"><td colspan="11">Loading ads…</td></tr></tbody></table></div>
+            <div class="table-footer"><span id="count-ads"></span><div class="pagination" id="pages-ads"></div></div>
+          </div>
+        </div>
+
+        <!-- ── KEYWORDS ── -->
+        <div id="view-keywords" style="display:none">
+          <div class="table-card">
+            <div class="table-toolbar">
+              <div class="table-title">Keywords</div>
+              <input class="search-input" placeholder="Search keywords..." oninput="filterTable('keywords',this.value)" id="search-keywords">
+              <button class="btn btn-secondary btn-sm" onclick="loadView('keywords')">↻ Refresh</button>
+            </div>
+            <div class="table-wrap"><table id="table-keywords"><thead><tr>
+              <th onclick="sortBy('keywords','campaign_name')">Campaign</th>
+              <th onclick="sortBy('keywords','ad_group_name')">Ad Group</th>
+              <th onclick="sortBy('keywords','keyword')">Keyword</th>
+              <th onclick="sortBy('keywords','match_type')">Match</th>
+              <th onclick="sortBy('keywords','status')">Status</th>
+              <th onclick="sortBy('keywords','quality_score')" class="text-right">QS</th>
+              <th onclick="sortBy('keywords','impressions')" class="text-right">Impr.</th>
+              <th onclick="sortBy('keywords','clicks')" class="text-right">Clicks</th>
+              <th onclick="sortBy('keywords','ctr')" class="text-right">CTR</th>
+              <th onclick="sortBy('keywords','avg_cpc')" class="text-right">CPC</th>
+              <th onclick="sortBy('keywords','cost')" class="text-right">Spend</th>
+              <th onclick="sortBy('keywords','conversions')" class="text-right">Conv.</th>
+              <th onclick="sortBy('keywords','impression_share')" class="text-right">IS</th>
+            </tr></thead><tbody id="tbody-keywords"><tr class="loading-row"><td colspan="13">Loading keywords…</td></tr></tbody></table></div>
+            <div class="table-footer"><span id="count-keywords"></span><div class="pagination" id="pages-keywords"></div></div>
+          </div>
+        </div>
+
+        <!-- ── SEARCH TERMS ── -->
+        <div id="view-searchterms" style="display:none">
+          <div class="table-card">
+            <div class="table-toolbar">
+              <div class="table-title">Search Terms Report</div>
+              <input class="search-input" placeholder="Search terms..." oninput="filterTable('searchterms',this.value)" id="search-searchterms">
+              <button class="btn btn-secondary btn-sm" onclick="loadView('searchterms')">↻ Refresh</button>
+            </div>
+            <div class="table-wrap"><table id="table-searchterms"><thead><tr>
+              <th onclick="sortBy('searchterms','campaign_name')">Campaign</th>
+              <th onclick="sortBy('searchterms','ad_group_name')">Ad Group</th>
+              <th onclick="sortBy('searchterms','search_term')">Search Term</th>
+              <th onclick="sortBy('searchterms','status')">Status</th>
+              <th onclick="sortBy('searchterms','impressions')" class="text-right">Impr.</th>
+              <th onclick="sortBy('searchterms','clicks')" class="text-right">Clicks</th>
+              <th onclick="sortBy('searchterms','ctr')" class="text-right">CTR</th>
+              <th onclick="sortBy('searchterms','avg_cpc')" class="text-right">CPC</th>
+              <th onclick="sortBy('searchterms','cost')" class="text-right">Spend</th>
+              <th onclick="sortBy('searchterms','conversions')" class="text-right">Conv.</th>
+              <th onclick="sortBy('searchterms','conversion_rate')" class="text-right">Conv%</th>
+            </tr></thead><tbody id="tbody-searchterms"><tr class="loading-row"><td colspan="11">Loading search terms…</td></tr></tbody></table></div>
+            <div class="table-footer"><span id="count-searchterms"></span><div class="pagination" id="pages-searchterms"></div></div>
+          </div>
+        </div>
+
+        <!-- ── AI INSIGHTS ── -->
+        <div id="view-insights" style="display:none">
+          <div id="insights-generate" class="insights-generate" style="display:none">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" style="margin:0 auto"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+            <h2 style="font-size:18px;font-weight:700;margin:16px 0 8px">AI-Powered Insights</h2>
+            <p>Claude AI will analyze your campaign data and provide specific, actionable recommendations for improving performance.</p>
+            <button class="btn btn-primary" onclick="generateInsights()" style="padding:12px 28px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+              Analyze My Account
+            </button>
+          </div>
+          <div id="insights-generating" class="generating-wrap" style="display:none">
+            <div class="pulse"></div>
+            <p>Claude is analyzing your account data…</p>
+          </div>
+          <div id="insights-content" style="display:none">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+              <div><div class="section-title">AI Analysis</div><div class="section-desc" id="insights-date-label"></div></div>
+              <button class="btn btn-secondary btn-sm" onclick="generateInsights()">↻ Regenerate</button>
+            </div>
+            <div class="insights-container">
+              <div class="insights-card insights-full" id="ic-insights">
+                <div class="insights-card-title" style="color:var(--accent)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                  Key Performance Insights
+                </div>
+                <div id="list-insights"></div>
+              </div>
+              <div class="insights-card" id="ic-issues">
+                <div class="insights-card-title" style="color:var(--red)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                  Critical Issues
+                </div>
+                <div id="list-issues"></div>
+              </div>
+              <div class="insights-card" id="ic-opportunities">
+                <div class="insights-card-title" style="color:var(--green)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                  Top Opportunities
+                </div>
+                <div id="list-opportunities"></div>
+              </div>
+              <div class="insights-card" id="ic-budget">
+                <div class="insights-card-title" style="color:var(--yellow)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  Budget Recommendations
+                </div>
+                <div id="list-budget"></div>
+              </div>
+              <div class="insights-card insights-full" id="ic-quickwins">
+                <div class="insights-card-title" style="color:var(--teal)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                  Quick Wins — Do These Now
+                </div>
+                <div id="list-quickwins" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:0"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /content-area -->
+    </div><!-- /main-wrap -->
+  </div><!-- /layout -->
+</div><!-- /app -->
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════════════════════
+const S = {
+  mode: 'live', // 'live' | 'demo'
+  view: 'overview',
+  preset: 'last30',
+  start: '', end: '',
+  auth: null,
+  data: { overview:null, timeseries:[], campaigns:[], adGroups:[], ads:[], keywords:[], searchTerms:[], devices:[], insights:null },
+  ui: { sort:{}, dir:{}, search:{}, page:{}, pageSize:20 },
+  charts: {},
+  currentExportData: [],
+  currentExportName: '',
+};
+
+const VIEWS = {
+  overview:    { title:'Overview',        sub:'Account performance at a glance',          export:false },
+  campaigns:   { title:'Campaigns',       sub:'Campaign-level performance breakdown',      export:true },
+  adgroups:    { title:'Ad Groups',       sub:'Ad group performance across all campaigns', export:true },
+  ads:         { title:'Ads',             sub:'Individual ad performance and previews',    export:true },
+  keywords:    { title:'Keywords',        sub:'Keyword performance and quality scores',    export:true },
+  searchterms: { title:'Search Terms',    sub:'Actual queries that triggered your ads',    export:true },
+  insights:    { title:'AI Insights',     sub:'Claude AI analysis and recommendations',    export:false },
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════════════════════
+async function init() {
+  setDefaultDates();
+  const status = await apiFetch('/api/auth/status');
+  S.auth = status;
+
+  const params = new URLSearchParams(location.search);
+  if (params.get('connected')) { history.replaceState(null,'','/'); toast('Google account connected!'); }
+  if (params.get('error')) { history.replaceState(null,'','/'); toast(params.get('error'), true); }
+
+  if (status.authenticated) {
+    showDashboard(false);
+  } else if (!status.configured) {
+    showScreen('setup');
+  } else {
+    showScreen('auth');
+  }
+}
+
+function showScreen(name) {
+  document.getElementById('screen-auth').style.display = name === 'auth' ? '' : 'none';
+  document.getElementById('screen-setup').style.display = name === 'setup' ? '' : 'none';
+  document.getElementById('app').style.display = name === 'app' ? '' : 'none';
+}
+
+function showAuth() { showScreen('auth'); }
+
+function showDashboard(isDemo) {
+  S.mode = isDemo ? 'demo' : 'live';
+  showScreen('app');
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('screen-auth').style.display = 'none';
+  document.getElementById('screen-setup').style.display = 'none';
+  document.getElementById('demo-banner').style.display = isDemo ? '' : 'none';
+
+  if (S.auth?.user) {
+    const u = S.auth.user;
+    document.getElementById('user-name').textContent = u.name || u.email || 'Connected';
+    document.getElementById('user-cid').textContent = S.auth.customerId ? `ID: ${S.auth.customerId}` : 'Google Ads';
+    const av = document.getElementById('user-avatar');
+    if (u.picture) { av.innerHTML = `<img src="${u.picture}">`; }
+    else { av.textContent = (u.name || u.email || '?')[0].toUpperCase(); }
+  } else {
+    document.getElementById('user-name').textContent = 'Demo Mode';
+    document.getElementById('user-cid').textContent = 'Sample data';
+  }
+
+  navigate('overview');
+}
+
+async function startDemo() {
+  S.mode = 'demo';
+  S.auth = S.auth || {};
+  showDashboard(true);
+}
+
+async function connectGoogle() {
+  const { url } = await apiFetch('/api/auth/url');
+  location.href = url;
+}
+
+async function logout() {
+  await apiFetch('/api/auth/logout', { method: 'POST' });
+  location.reload();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════════════════════════════
+function navigate(view) {
+  S.view = view;
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('nav-' + view)?.classList.add('active');
+  document.querySelectorAll('[id^="view-"]').forEach(el => el.style.display = 'none');
+  document.getElementById('view-' + view).style.display = '';
+
+  const v = VIEWS[view];
+  document.getElementById('view-title').textContent = v.title;
+  document.getElementById('view-sub').textContent = v.sub;
+  document.getElementById('btn-export').style.display = v.export ? '' : 'none';
+
+  loadCurrentView();
+}
+
+async function loadCurrentView() {
+  switch (S.view) {
+    case 'overview':    await loadOverview(); break;
+    case 'campaigns':   await loadView('campaigns'); break;
+    case 'adgroups':    await loadView('adgroups'); break;
+    case 'ads':         await loadView('ads'); break;
+    case 'keywords':    await loadView('keywords'); break;
+    case 'searchterms': await loadView('searchterms'); break;
+    case 'insights':    showInsightsPanel(); break;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// DATE RANGE
+// ════════════════════════════════════════════════════════════════════════════
+function setDefaultDates() {
+  const end = new Date();
+  const start = new Date(); start.setDate(start.getDate() - 29);
+  S.start = fmt(start); S.end = fmt(end);
+  document.getElementById('date-start').value = S.start;
+  document.getElementById('date-end').value = S.end;
+}
+
+function fmt(d) { return d.toISOString().split('T')[0]; }
+function fmtDisp(d) { return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric' }); }
+
+function setPreset(p) {
+  S.preset = p;
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  const now = new Date(), d = new Date();
+  if (p === 'today') { S.start = S.end = fmt(now); }
+  else if (p === 'yesterday') { d.setDate(d.getDate()-1); S.start = S.end = fmt(d); }
+  else if (p === 'last7') { d.setDate(d.getDate()-6); S.start=fmt(d); S.end=fmt(now); }
+  else if (p === 'last14') { d.setDate(d.getDate()-13); S.start=fmt(d); S.end=fmt(now); }
+  else if (p === 'last30') { d.setDate(d.getDate()-29); S.start=fmt(d); S.end=fmt(now); }
+  else if (p === 'last90') { d.setDate(d.getDate()-89); S.start=fmt(d); S.end=fmt(now); }
+  else if (p === 'thisMonth') { S.start=fmt(new Date(now.getFullYear(),now.getMonth(),1)); S.end=fmt(now); }
+  else if (p === 'lastMonth') { const lm=new Date(now.getFullYear(),now.getMonth()-1,1); S.start=fmt(lm); S.end=fmt(new Date(now.getFullYear(),now.getMonth(),0)); }
+  document.getElementById('date-start').value = S.start;
+  document.getElementById('date-end').value = S.end;
+  loadCurrentView();
+}
+
+function setCustomDate() {
+  S.start = document.getElementById('date-start').value;
+  S.end = document.getElementById('date-end').value;
+  S.preset = 'custom';
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// API
+// ════════════════════════════════════════════════════════════════════════════
+async function apiFetch(url, opts = {}) {
+  const r = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...opts, body: opts.body ? JSON.stringify(opts.body) : undefined });
+  if (!r.ok && r.status !== 401) { const e = await r.json().catch(() => ({})); throw new Error(e.error || `HTTP ${r.status}`); }
+  return r.json();
+}
+
+async function fetchData(view) {
+  const qs = `startDate=${S.start}&endDate=${S.end}`;
+  if (S.mode === 'demo') {
+    const all = await apiFetch(`/api/demo?${qs}`);
+    S.data.overview = all.overview; S.data.timeseries = all.timeseries;
+    S.data.campaigns = all.campaigns; S.data.adGroups = all.adGroups;
+    S.data.ads = all.ads; S.data.keywords = all.keywords; S.data.searchTerms = all.searchTerms;
+    S.data.devices = all.devices;
+    return all;
+  }
+  switch (view) {
+    case 'overview': {
+      const [ov, ts, dev] = await Promise.all([
+        apiFetch(`/api/overview?${qs}`),
+        apiFetch(`/api/timeseries?${qs}`),
+        apiFetch(`/api/devices?${qs}`),
+      ]);
+      S.data.overview = ov; S.data.timeseries = ts.data; S.data.devices = dev.devices;
+      return;
+    }
+    case 'campaigns': { const r = await apiFetch(`/api/campaigns?${qs}`); S.data.campaigns = r.campaigns; return; }
+    case 'adgroups':  { const r = await apiFetch(`/api/adgroups?${qs}`); S.data.adGroups = r.adGroups; return; }
+    case 'ads':       { const r = await apiFetch(`/api/ads?${qs}`); S.data.ads = r.ads; return; }
+    case 'keywords':  { const r = await apiFetch(`/api/keywords?${qs}`); S.data.keywords = r.keywords; return; }
+    case 'searchterms': { const r = await apiFetch(`/api/search-terms?${qs}`); S.data.searchTerms = r.searchTerms; return; }
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// FORMAT HELPERS
+// ════════════════════════════════════════════════════════════════════════════
+const fmtN = (n, dec=0) => n == null ? '—' : Number(n).toLocaleString('en-US', {minimumFractionDigits:dec, maximumFractionDigits:dec});
+const fmtC = (n) => n == null ? '—' : '$' + Number(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+const fmtP = (n) => n == null ? '—' : (n*100).toFixed(2) + '%';
+const fmtPct = (n) => n == null ? '—' : n.toFixed(1) + '%';
+const fmtX = (n) => n == null ? '—' : Number(n).toFixed(2) + 'x';
+
+function fmtImpr(n) {
+  if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n/1000).toFixed(1) + 'K';
+  return fmtN(n);
+}
+
+function statusBadge(s) {
+  if (!s) return '';
+  const cls = s === 'ENABLED' ? 'badge-green' : s === 'PAUSED' ? 'badge-orange' : s === 'REMOVED' ? 'badge-red' : 'badge-gray';
+  return `<span class="badge ${cls}">${s}</span>`;
+}
+
+function channelBadge(c) {
+  const map = { SEARCH:'badge-blue', DISPLAY:'badge-purple', SHOPPING:'badge-green', VIDEO:'badge-orange', DISCOVERY:'badge-gray' };
+  return `<span class="badge ${map[c]||'badge-gray'}">${c||'—'}</span>`;
+}
+
+function matchBadge(m) {
+  if (!m) return '—';
+  const cls = m === 'EXACT' ? 'tag-exact' : m === 'PHRASE' ? 'tag-phrase' : 'tag-broad';
+  return `<span class="tag ${cls}">${m}</span>`;
+}
+
+function stBadge(s) {
+  if (s === 'ADDED') return `<span class="badge badge-green">Added</span>`;
+  if (s === 'ADDED_NEGATIVE') return `<span class="badge badge-red">Excluded</span>`;
+  return `<span class="badge badge-gray">—</span>`;
+}
+
+function qsBar(qs) {
+  if (!qs) return '<span class="text-muted">—</span>';
+  return `<div class="qs-wrap"><span class="qs-num">${qs}</span><div class="qs-bar"><div class="qs-fill qs-${qs}" style="width:${qs*10}%"></div></div></div>`;
+}
+
+function isBar(is) {
+  const pct = Math.min((is||0)*100, 100);
+  return `<div class="is-bar-wrap"><div class="is-bar"><div class="is-fill" style="width:${pct.toFixed(0)}%"></div></div><span style="font-size:11px;color:var(--text2)">${pct.toFixed(0)}%</span></div>`;
+}
+
+function deltaArrow(v, inverse = false) {
+  if (v == null || v === 0) return `<span class="kpi-change neutral">— vs prev</span>`;
+  const good = inverse ? v < 0 : v > 0;
+  const cls = good ? 'up' : 'down';
+  const arrow = v > 0 ? '▲' : '▼';
+  return `<span class="kpi-change ${cls}">${arrow} ${Math.abs(v).toFixed(1)}% vs prev</span>`;
+}
+
+function adTypeBadge(t) {
+  const map = { RESPONSIVE_SEARCH_AD:'RSA', RESPONSIVE_DISPLAY_AD:'RDA', EXPANDED_TEXT_AD:'ETA', SHOPPING_PRODUCT_AD:'Shopping', IMAGE_AD:'Image', VIDEO_AD:'Video' };
+  return `<span class="badge badge-gray">${map[t]||t||'—'}</span>`;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// OVERVIEW
+// ════════════════════════════════════════════════════════════════════════════
+async function loadOverview() {
+  try {
+    await fetchData('overview');
+    renderKPIs();
+    renderTimeseries('clicks');
+    renderDeviceChart();
+    renderCampaignChart();
+  } catch (e) { toast(e.message, true); }
+}
+
+function renderKPIs() {
+  const o = S.data.overview; if (!o) return;
+  const c = o.changes || {};
+  const cpa = o.conversions > 0 ? o.cost / o.conversions : 0;
+  const cards = [
+    { label:'Impressions', value: fmtImpr(o.impressions), change: deltaArrow(c.impressions) },
+    { label:'Clicks',      value: fmtN(o.clicks), change: deltaArrow(c.clicks) },
+    { label:'CTR',         value: fmtP(o.ctr), change: deltaArrow(c.clicks) },
+    { label:'Avg. CPC',    value: fmtC(o.avg_cpc), change: deltaArrow(c.cost, true) },
+    { label:'Spend',       value: fmtC(o.cost), change: deltaArrow(c.cost) },
+    { label:'Conversions', value: fmtN(o.conversions, 1), change: deltaArrow(c.conversions) },
+    { label:'Conv. Rate',  value: fmtP(o.conversion_rate), change: deltaArrow(c.conversions) },
+    { label:'ROAS',        value: fmtX(o.roas), change: deltaArrow(c.roas) },
+    { label:'CPA',         value: fmtC(cpa), change: deltaArrow(c.conversions, true) },
+    { label:'Impr. Share', value: fmtP(o.impression_share), change: '' },
+  ];
+  document.getElementById('kpi-grid').innerHTML = cards.map(k => `
+    <div class="kpi-card">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-value">${k.value}</div>
+      ${k.change}
+    </div>`).join('');
+  document.getElementById('ts-range').textContent = `${fmtDisp(S.start)} – ${fmtDisp(S.end)}`;
+}
+
+function switchMetric(metric) {
+  document.querySelectorAll('.metric-tab').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderTimeseries(metric);
+}
+
+const METRIC_CFG = {
+  clicks:      { label:'Clicks', color:'#5865f2', fmt: v => fmtN(v) },
+  impressions: { label:'Impressions', color:'#a855f7', fmt: v => fmtImpr(v) },
+  cost:        { label:'Spend ($)', color:'#fbbf24', fmt: v => fmtC(v) },
+  conversions: { label:'Conversions', color:'#22d87b', fmt: v => fmtN(v,1) },
+};
+
+function renderTimeseries(metric = 'clicks') {
+  const ts = S.data.timeseries; if (!ts?.length) return;
+  const cfg = METRIC_CFG[metric];
+  const labels = ts.map(d => fmtDisp(d.date));
+  const values = ts.map(d => d[metric]);
+
+  const ctx = document.getElementById('chart-timeseries');
+  if (S.charts.ts) S.charts.ts.destroy();
+  S.charts.ts = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{ label: cfg.label, data: values, borderColor: cfg.color, backgroundColor: cfg.color + '20', fill: true, tension: 0.4, borderWidth: 2, pointRadius: labels.length > 30 ? 0 : 3, pointHoverRadius: 5 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: { duration: 400 },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => cfg.fmt(ctx.raw) }, backgroundColor: '#1e2236', borderColor: '#2e3352', borderWidth: 1, titleColor: '#dde1f5', bodyColor: '#8b90b8', padding: 10 } },
+      scales: {
+        x: { grid: { color: '#1e2236' }, ticks: { color: '#555a7a', maxTicksLimit: 8, font: { size: 10 } } },
+        y: { grid: { color: '#1e2236' }, ticks: { color: '#555a7a', font: { size: 10 }, callback: v => cfg.fmt(v) } },
+      },
+    }
+  });
+}
+
+function renderDeviceChart() {
+  const devs = S.data.devices; if (!devs?.length) return;
+  const labels = devs.map(d => d.device.charAt(0) + d.device.slice(1).toLowerCase());
+  const values = devs.map(d => d.clicks);
+  const colors = ['#5865f2','#22d87b','#fbbf24'];
+  const ctx = document.getElementById('chart-device');
+  if (S.charts.device) S.charts.device.destroy();
+  S.charts.device = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 0, hoverOffset: 4 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: { duration: 400 }, cutout: '65%',
+      plugins: { legend: { position: 'bottom', labels: { color: '#8b90b8', font: { size: 11 }, padding: 12 } }, tooltip: { backgroundColor: '#1e2236', borderColor: '#2e3352', borderWidth: 1, titleColor: '#dde1f5', bodyColor: '#8b90b8', callbacks: { label: ctx => ` ${ctx.label}: ${fmtN(ctx.raw)} clicks` } } },
+    }
+  });
+}
+
+function renderCampaignChart() {
+  const camps = [...(S.data.campaigns || [])].sort((a,b) => b.cost - a.cost).slice(0,7);
+  if (!camps.length) return;
+  const labels = camps.map(c => c.name.length > 22 ? c.name.slice(0,22)+'…' : c.name);
+  const ctx = document.getElementById('chart-campaigns');
+  if (S.charts.camp) S.charts.camp.destroy();
+  S.charts.camp = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label:'Spend ($)', data: camps.map(c => c.cost.toFixed(2)), backgroundColor: '#5865f2', yAxisID: 'y', order: 2 },
+        { label:'ROAS', data: camps.map(c => c.roas.toFixed(2)), type:'line', borderColor:'#22d87b', backgroundColor:'transparent', yAxisID: 'y2', tension: 0.3, borderWidth: 2, pointRadius: 4, order: 1 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: { duration: 400 },
+      plugins: { legend: { labels: { color: '#8b90b8', font: { size: 11 } } }, tooltip: { backgroundColor: '#1e2236', borderColor: '#2e3352', borderWidth: 1, titleColor: '#dde1f5', bodyColor: '#8b90b8' } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#555a7a', font: { size: 10 } } },
+        y: { grid: { color: '#1e2236' }, ticks: { color: '#555a7a', font: { size: 10 }, callback: v => '$'+v }, position: 'left' },
+        y2: { grid: { display: false }, ticks: { color: '#22d87b', font: { size: 10 }, callback: v => v+'x' }, position: 'right' },
+      }
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// TABLE VIEWS
+// ════════════════════════════════════════════════════════════════════════════
+async function loadView(view) {
+  const tbodyId = 'tbody-' + view;
+  document.getElementById(tbodyId).innerHTML = `<tr class="loading-row"><td colspan="20">Loading…</td></tr>`;
+  try {
+    if (S.mode === 'demo') { await fetchData(view); }
+    else {
+      // For live mode, only fetch if we don't have recent data
+      await fetchData(view);
+    }
+    renderView(view);
+  } catch (e) { document.getElementById(tbodyId).innerHTML = `<tr class="loading-row"><td colspan="20" style="color:var(--red)">${e.message}</td></tr>`; toast(e.message, true); }
+}
+
+function renderView(view) {
+  switch (view) {
+    case 'campaigns':   renderTable('campaigns', S.data.campaigns, campaignCols()); break;
+    case 'adgroups':    renderTable('adgroups', S.data.adGroups, adGroupCols()); break;
+    case 'ads':         renderTable('ads', S.data.ads, adCols()); break;
+    case 'keywords':    renderTable('keywords', S.data.keywords, keywordCols()); break;
+    case 'searchterms': renderTable('searchterms', S.data.searchTerms, searchTermCols()); break;
+  }
+}
+
+// ─── Column Definitions ───────────────────────────────────────────────────
+function campaignCols() {
+  return [
+    { key:'name', render: r => `<strong>${r.name}</strong>` },
+    { key:'status', render: r => statusBadge(r.status) },
+    { key:'channel', render: r => channelBadge(r.channel) },
+    { key:'impressions', right:true, render: r => fmtImpr(r.impressions) },
+    { key:'clicks', right:true, render: r => fmtN(r.clicks) },
+    { key:'ctr', right:true, render: r => fmtP(r.ctr) },
+    { key:'avg_cpc', right:true, render: r => fmtC(r.avg_cpc) },
+    { key:'cost', right:true, render: r => `<strong>${fmtC(r.cost)}</strong>` },
+    { key:'conversions', right:true, render: r => fmtN(r.conversions, 1) },
+    { key:'conversion_rate', right:true, render: r => fmtP(r.conversion_rate) },
+    { key:'roas', right:true, render: r => `<span style="color:${r.roas>=2?'var(--green)':r.roas>=1?'var(--yellow)':'var(--red)'}">${fmtX(r.roas)}</span>` },
+    { key:'impression_share', right:true, render: r => isBar(r.impression_share) },
+  ];
+}
+
+function adGroupCols() {
+  return [
+    { key:'campaign_name', render: r => `<span class="text-muted text-sm">${r.campaign_name}</span>` },
+    { key:'name', render: r => `<strong>${r.name}</strong>` },
+    { key:'status', render: r => statusBadge(r.status) },
+    { key:'impressions', right:true, render: r => fmtImpr(r.impressions) },
+    { key:'clicks', right:true, render: r => fmtN(r.clicks) },
+    { key:'ctr', right:true, render: r => fmtP(r.ctr) },
+    { key:'avg_cpc', right:true, render: r => fmtC(r.avg_cpc) },
+    { key:'cost', right:true, render: r => `<strong>${fmtC(r.cost)}</strong>` },
+    { key:'conversions', right:true, render: r => fmtN(r.conversions, 1) },
+    { key:'conversion_rate', right:true, render: r => fmtP(r.conversion_rate) },
+    { key:'roas', right:true, render: r => `<span style="color:${r.roas>=2?'var(--green)':r.roas>=1?'var(--yellow)':'var(--red)'}">${fmtX(r.roas)}</span>` },
+  ];
+}
+
+function adCols() {
+  return [
+    { key:'campaign_name', render: r => `<span class="text-muted text-sm" style="max-width:120px;display:block;overflow:hidden;text-overflow:ellipsis">${r.campaign_name}</span>` },
+    { key:'ad_group_name', render: r => `<span class="text-muted text-sm">${r.ad_group_name}</span>` },
+    { key:'_preview', render: r => `<div class="ad-preview"><div class="ad-url">${r.final_url ? new URL(r.final_url).hostname : '—'}</div><div class="ad-headline">${r.headlines || r.name}</div><div class="ad-desc">${(r.descriptions||'').slice(0,80)}${r.descriptions?.length>80?'…':''}</div></div>` },
+    { key:'type', render: r => adTypeBadge(r.type) },
+    { key:'status', render: r => statusBadge(r.status) },
+    { key:'impressions', right:true, render: r => fmtImpr(r.impressions) },
+    { key:'clicks', right:true, render: r => fmtN(r.clicks) },
+    { key:'ctr', right:true, render: r => fmtP(r.ctr) },
+    { key:'cost', right:true, render: r => fmtC(r.cost) },
+    { key:'conversions', right:true, render: r => fmtN(r.conversions, 1) },
+    { key:'roas', right:true, render: r => `<span style="color:${r.roas>=2?'var(--green)':r.roas>=1?'var(--yellow)':'var(--red)'}">${fmtX(r.roas)}</span>` },
+  ];
+}
+
+function keywordCols() {
+  return [
+    { key:'campaign_name', render: r => `<span class="text-muted text-sm">${r.campaign_name}</span>` },
+    { key:'ad_group_name', render: r => `<span class="text-muted text-sm">${r.ad_group_name}</span>` },
+    { key:'keyword', render: r => `<strong>${r.keyword}</strong>` },
+    { key:'match_type', render: r => matchBadge(r.match_type) },
+    { key:'status', render: r => statusBadge(r.status) },
+    { key:'quality_score', right:true, render: r => qsBar(r.quality_score) },
+    { key:'impressions', right:true, render: r => fmtImpr(r.impressions) },
+    { key:'clicks', right:true, render: r => fmtN(r.clicks) },
+    { key:'ctr', right:true, render: r => fmtP(r.ctr) },
+    { key:'avg_cpc', right:true, render: r => fmtC(r.avg_cpc) },
+    { key:'cost', right:true, render: r => fmtC(r.cost) },
+    { key:'conversions', right:true, render: r => fmtN(r.conversions, 1) },
+    { key:'impression_share', right:true, render: r => isBar(r.impression_share) },
+  ];
+}
+
+function searchTermCols() {
+  return [
+    { key:'campaign_name', render: r => `<span class="text-muted text-sm">${r.campaign_name}</span>` },
+    { key:'ad_group_name', render: r => `<span class="text-muted text-sm">${r.ad_group_name}</span>` },
+    { key:'search_term', render: r => `<strong>${r.search_term}</strong>` },
+    { key:'status', render: r => stBadge(r.status) },
+    { key:'impressions', right:true, render: r => fmtImpr(r.impressions) },
+    { key:'clicks', right:true, render: r => fmtN(r.clicks) },
+    { key:'ctr', right:true, render: r => fmtP(r.ctr) },
+    { key:'avg_cpc', right:true, render: r => fmtC(r.avg_cpc) },
+    { key:'cost', right:true, render: r => fmtC(r.cost) },
+    { key:'conversions', right:true, render: r => fmtN(r.conversions, 1) },
+    { key:'conversion_rate', right:true, render: r => fmtP(r.conversion_rate) },
+  ];
+}
+
+// ─── Generic Table Renderer ───────────────────────────────────────────────
+function renderTable(view, rawData, cols) {
+  const searchQ = (S.ui.search[view] || '').toLowerCase();
+  const sortCol = S.ui.sort[view];
+  const sortDir = S.ui.dir[view] || 'desc';
+  const page    = S.ui.page[view] || 0;
+
+  // Filter
+  let data = rawData || [];
+  if (searchQ) {
+    data = data.filter(r => Object.values(r).some(v => String(v).toLowerCase().includes(searchQ)));
+  }
+
+  // Sort
+  if (sortCol) {
+    data = [...data].sort((a, b) => {
+      const av = a[sortCol], bv = b[sortCol];
+      if (typeof av === 'number') return sortDir === 'asc' ? av - bv : bv - av;
+      return sortDir === 'asc' ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av));
+    });
+  }
+
+  // Pagination
+  const total = data.length;
+  const ps = S.ui.pageSize;
+  const totalPages = Math.ceil(total / ps);
+  const curPage = Math.min(page, Math.max(0, totalPages - 1));
+  const paged = data.slice(curPage * ps, (curPage + 1) * ps);
+
+  // Set export data
+  S.currentExportData = data;
+  S.currentExportName = view;
+
+  // Render rows
+  const tbody = document.getElementById('tbody-' + view);
+  if (!paged.length) {
+    tbody.innerHTML = `<tr class="loading-row"><td colspan="${cols.length}"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><div>No data found</div></div></td></tr>`;
+  } else {
+    tbody.innerHTML = paged.map(r =>
+      `<tr>${cols.map(c => `<td${c.right?' class="text-right"':''}>${c.render(r)}</td>`).join('')}</tr>`
+    ).join('');
+  }
+
+  // Update sort headers
+  const thead = document.querySelector(`#table-${view} thead tr`);
+  if (thead) {
+    thead.querySelectorAll('th').forEach((th, i) => {
+      th.classList.remove('sort-asc','sort-desc');
+      if (cols[i]?.key === sortCol) th.classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+    });
+  }
+
+  // Footer
+  const start = curPage * ps + 1, end = Math.min((curPage + 1) * ps, total);
+  document.getElementById('count-' + view).textContent = total > 0 ? `${start}–${end} of ${fmtN(total)} rows` : '0 rows';
+
+  // Pagination buttons
+  const paginEl = document.getElementById('pages-' + view);
+  let paginHTML = `<button class="page-btn" onclick="goPage('${view}',${curPage-1})" ${curPage===0?'disabled':''}>‹</button>`;
+  const maxShow = 5;
+  let lo = Math.max(0, curPage - 2), hi = Math.min(totalPages - 1, lo + maxShow - 1);
+  if (hi - lo < maxShow - 1) lo = Math.max(0, hi - maxShow + 1);
+  for (let i = lo; i <= hi; i++) paginHTML += `<button class="page-btn ${i===curPage?'active':''}" onclick="goPage('${view}',${i})">${i+1}</button>`;
+  paginHTML += `<button class="page-btn" onclick="goPage('${view}',${curPage+1})" ${curPage>=totalPages-1?'disabled':''}>›</button>`;
+  paginEl.innerHTML = totalPages > 1 ? paginHTML : '';
+}
+
+function sortBy(view, col) {
+  if (S.ui.sort[view] === col) S.ui.dir[view] = S.ui.dir[view] === 'asc' ? 'desc' : 'asc';
+  else { S.ui.sort[view] = col; S.ui.dir[view] = 'desc'; }
+  S.ui.page[view] = 0;
+  renderView(view);
+}
+
+function filterTable(view, q) {
+  S.ui.search[view] = q;
+  S.ui.page[view] = 0;
+  renderView(view);
+}
+
+function goPage(view, p) {
+  S.ui.page[view] = p;
+  renderView(view);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// AI INSIGHTS
+// ════════════════════════════════════════════════════════════════════════════
+function showInsightsPanel() {
+  if (S.data.insights) {
+    showInsightsContent(S.data.insights);
+  } else {
+    document.getElementById('insights-generate').style.display = '';
+    document.getElementById('insights-generating').style.display = 'none';
+    document.getElementById('insights-content').style.display = 'none';
+  }
+}
+
+async function generateInsights() {
+  document.getElementById('insights-generate').style.display = 'none';
+  document.getElementById('insights-generating').style.display = '';
+  document.getElementById('insights-content').style.display = 'none';
+
+  // Load data if not already loaded
+  if (!S.data.campaigns.length) {
+    try {
+      if (S.mode === 'demo') { await fetchData('overview'); }
+      else {
+        await Promise.all([fetchData('overview'), fetchData('campaigns'), fetchData('keywords')]);
+      }
+    } catch(e) { /* use what we have */ }
+  }
+
+  try {
+    const result = await apiFetch('/api/insights', {
+      method: 'POST',
+      body: {
+        overview: S.data.overview,
+        campaigns: S.data.campaigns,
+        adGroups: S.data.adGroups,
+        keywords: S.data.keywords,
+        dateRange: { start: S.start, end: S.end },
+        isDemo: S.mode === 'demo',
+      }
+    });
+    S.data.insights = result;
+    showInsightsContent(result);
+  } catch (e) {
+    document.getElementById('insights-generate').style.display = '';
+    document.getElementById('insights-generating').style.display = 'none';
+    toast(e.message, true);
+  }
+}
+
+function showInsightsContent(data) {
+  document.getElementById('insights-generate').style.display = 'none';
+  document.getElementById('insights-generating').style.display = 'none';
+  document.getElementById('insights-content').style.display = '';
+  document.getElementById('insights-date-label').textContent = `Analyzed ${fmtDisp(S.start)} – ${fmtDisp(S.end)}`;
+
+  const render = (listId, items, extra = '') => {
+    if (!items?.length) { document.getElementById(listId).innerHTML = '<div class="insight-item text-muted" style="padding:12px 0;font-size:12px">No data available.</div>'; return; }
+    document.getElementById(listId).innerHTML = items.map((item, i) => `
+      <div class="insight-item">
+        <div class="insight-title">
+          ${extra === 'severity' && item.severity ? `<span class="severity-${item.severity}">[${item.severity.toUpperCase()}]</span> ` : ''}
+          ${extra === 'impact' && item.impact ? `<span class="impact-${item.impact}">[${item.impact.toUpperCase()} IMPACT]</span> ` : ''}
+          ${extra === 'num' ? `<span style="color:var(--teal)">${i+1}.</span> ` : ''}
+          ${item.title}
+        </div>
+        <div class="insight-desc">${item.description}</div>
+      </div>`).join('');
+  };
+
+  render('list-insights', data.insights);
+  render('list-issues', data.issues, 'severity');
+  render('list-opportunities', data.opportunities, 'impact');
+  render('list-budget', data.budget);
+  render('list-quickwins', data.quickWins, 'num');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// EXPORT CSV
+// ════════════════════════════════════════════════════════════════════════════
+function exportCSV() {
+  const data = S.currentExportData;
+  if (!data?.length) return;
+  const cols = Object.keys(data[0]).filter(k => !k.startsWith('_'));
+  const rows = [cols.join(',')];
+  data.forEach(r => rows.push(cols.map(c => {
+    const v = r[c]; if (v == null) return '';
+    const s = String(v);
+    return s.includes(',') || s.includes('"') ? `"${s.replace(/"/g,'""')}"` : s;
+  }).join(',')));
+  const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `gads-${S.currentExportName}-${S.start}-${S.end}.csv`; a.click();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════════════════════════════════════
+function toast(msg, isError = false) {
+  const el = document.createElement('div');
+  el.className = 'toast-item' + (isError ? ' error' : '');
+  el.textContent = msg;
+  document.getElementById('toast').appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// START
+// ════════════════════════════════════════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
