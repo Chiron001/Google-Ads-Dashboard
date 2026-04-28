@@ -280,6 +280,50 @@ tr:hover td { background: rgba(255,255,255,0.02); }
   #toast { bottom: 16px; right: 12px; left: 12px; }
   .toast-item { max-width: 100%; }
 }
+
+/* ─── COLUMN MANAGER ─── */
+.col-manager { background: var(--bg); border-bottom: 1px solid var(--border); padding: 12px 16px; display: none; }
+.col-manager.open { display: block; }
+.col-checks { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px; }
+.col-check { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; background: var(--card); border: 1px solid var(--border); border-radius: var(--r-sm); cursor: pointer; font-size: 11px; user-select: none; }
+.col-check:hover { border-color: var(--border2); }
+.col-check input[type=checkbox] { cursor: pointer; accent-color: var(--accent); }
+.col-check.required { opacity: 0.45; pointer-events: none; }
+.cc-form { display: flex; gap: 6px; align-items: flex-end; flex-wrap: wrap; margin-top: 8px; }
+.cc-field { display: flex; flex-direction: column; gap: 3px; }
+.cc-field label { font-size: 10px; color: var(--text3); }
+.cc-fields-hint { font-size: 10px; color: var(--text3); margin-top: 5px; line-height: 1.5; }
+
+/* ─── PERFORMANCE LABELS ─── */
+.perf-best    { color: var(--green); }
+.perf-good    { color: var(--accent); }
+.perf-low     { color: var(--red); }
+.perf-pending { color: var(--text2); }
+.perf-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 3px; vertical-align: middle; }
+.perf-best .perf-dot  { background: var(--green); }
+.perf-good .perf-dot  { background: var(--accent); }
+.perf-low .perf-dot   { background: var(--red); }
+.perf-pending .perf-dot { background: var(--text3); }
+
+/* ─── TWO-COLUMN LAYOUTS ─── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+@media (max-width: 768px) { .two-col { grid-template-columns: 1fr !important; } }
+
+/* ─── METRIC BAR ─── */
+.metric-bar-wrap { display: flex; align-items: center; gap: 6px; min-width: 90px; }
+.metric-bar { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; min-width: 40px; }
+.metric-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; }
+
+/* ─── AUCTION INSIGHTS TABLE ─── */
+.auction-you { font-weight: 700; color: var(--accent); }
+.pct-cell { font-size: 12px; font-family: 'SF Mono','Fira Mono',monospace; }
+
+/* ─── TIME HEATMAP ─── */
+.heat-row { display: grid; grid-template-columns: 40px repeat(24,1fr); gap: 2px; align-items: center; margin-bottom: 2px; }
+.heat-axis { font-size: 9px; color: var(--text3); text-align: right; padding-right: 4px; }
+.heat-cell { height: 18px; border-radius: 2px; }
+.heat-hour-labels { display: grid; grid-template-columns: 40px repeat(24,1fr); gap: 2px; margin-bottom: 4px; }
+.heat-hour-label { font-size: 8px; color: var(--text3); text-align: center; }
 </style>
 </head>
 <body>
@@ -417,6 +461,42 @@ tr:hover td { background: rgba(255,255,255,0.02); }
         </div>
       </div>
 
+      <div class="nav-section">
+        <div class="nav-label">Audiences &amp; Geo</div>
+        <div class="nav-item" onclick="navigate('geo')" id="nav-geo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="1.5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          Geo Performance
+        </div>
+        <div class="nav-item" onclick="navigate('demographics')" id="nav-demographics">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4" stroke-width="1.5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M23 21v-2a4 4 0 0 0-3-3.87m-4-12a4 4 0 0 1 0 7.75"/></svg>
+          Demographics
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Scheduling</div>
+        <div class="nav-item" onclick="navigate('timeanalysis')" id="nav-timeanalysis">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="1.5"/><polyline stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" points="12 6 12 12 16 14"/></svg>
+          Time Analysis
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Competitive</div>
+        <div class="nav-item" onclick="navigate('auctions')" id="nav-auctions">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 6H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 3H9a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1z"/></svg>
+          Auction Insights
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Creative</div>
+        <div class="nav-item" onclick="navigate('assets')" id="nav-assets">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke-width="1.5"/><circle cx="8.5" cy="8.5" r="1.5" stroke-width="1.5"/><polyline stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" points="21 15 16 10 5 21"/></svg>
+          Assets
+        </div>
+      </div>
+
       <!-- Quick Stats (filled by JS after data loads) -->
       <div class="sidebar-quick" id="sidebar-quick" style="display:none">
         <div class="sq-section-label">Period Summary</div>
@@ -529,8 +609,10 @@ tr:hover td { background: rgba(255,255,255,0.02); }
             <div class="table-toolbar">
               <div class="table-title">All Campaigns</div>
               <input class="search-input" placeholder="Search campaigns..." oninput="filterTable('campaigns',this.value)" id="search-campaigns">
+              <button class="btn btn-secondary btn-sm" onclick="toggleColManager('campaigns')">⊞ Columns</button>
               <button class="btn btn-secondary btn-sm" onclick="loadView('campaigns')">↻ Refresh</button>
             </div>
+            <div class="col-manager" id="col-mgr-campaigns"></div>
             <div class="table-wrap"><table id="table-campaigns"><thead><tr>
               <th onclick="sortBy('campaigns','name')">Campaign</th>
               <th onclick="sortBy('campaigns','status')">Status</th>
@@ -555,8 +637,10 @@ tr:hover td { background: rgba(255,255,255,0.02); }
             <div class="table-toolbar">
               <div class="table-title">All Ad Groups</div>
               <input class="search-input" placeholder="Search ad groups..." oninput="filterTable('adgroups',this.value)" id="search-adgroups">
+              <button class="btn btn-secondary btn-sm" onclick="toggleColManager('adgroups')">⊞ Columns</button>
               <button class="btn btn-secondary btn-sm" onclick="loadView('adgroups')">↻ Refresh</button>
             </div>
+            <div class="col-manager" id="col-mgr-adgroups"></div>
             <div class="table-wrap"><table id="table-adgroups"><thead><tr>
               <th onclick="sortBy('adgroups','campaign_name')">Campaign</th>
               <th onclick="sortBy('adgroups','name')">Ad Group</th>
@@ -580,8 +664,10 @@ tr:hover td { background: rgba(255,255,255,0.02); }
             <div class="table-toolbar">
               <div class="table-title">All Ads</div>
               <input class="search-input" placeholder="Search ads..." oninput="filterTable('ads',this.value)" id="search-ads">
+              <button class="btn btn-secondary btn-sm" onclick="toggleColManager('ads')">⊞ Columns</button>
               <button class="btn btn-secondary btn-sm" onclick="loadView('ads')">↻ Refresh</button>
             </div>
+            <div class="col-manager" id="col-mgr-ads"></div>
             <div class="table-wrap"><table id="table-ads"><thead><tr>
               <th onclick="sortBy('ads','campaign_name')">Campaign</th>
               <th onclick="sortBy('ads','ad_group_name')">Ad Group</th>
@@ -605,8 +691,10 @@ tr:hover td { background: rgba(255,255,255,0.02); }
             <div class="table-toolbar">
               <div class="table-title">Keywords</div>
               <input class="search-input" placeholder="Search keywords..." oninput="filterTable('keywords',this.value)" id="search-keywords">
+              <button class="btn btn-secondary btn-sm" onclick="toggleColManager('keywords')">⊞ Columns</button>
               <button class="btn btn-secondary btn-sm" onclick="loadView('keywords')">↻ Refresh</button>
             </div>
+            <div class="col-manager" id="col-mgr-keywords"></div>
             <div class="table-wrap"><table id="table-keywords"><thead><tr>
               <th onclick="sortBy('keywords','campaign_name')">Campaign</th>
               <th onclick="sortBy('keywords','ad_group_name')">Ad Group</th>
@@ -632,8 +720,10 @@ tr:hover td { background: rgba(255,255,255,0.02); }
             <div class="table-toolbar">
               <div class="table-title">Search Terms Report</div>
               <input class="search-input" placeholder="Search terms..." oninput="filterTable('searchterms',this.value)" id="search-searchterms">
+              <button class="btn btn-secondary btn-sm" onclick="toggleColManager('searchterms')">⊞ Columns</button>
               <button class="btn btn-secondary btn-sm" onclick="loadView('searchterms')">↻ Refresh</button>
             </div>
+            <div class="col-manager" id="col-mgr-searchterms"></div>
             <div class="table-wrap"><table id="table-searchterms"><thead><tr>
               <th onclick="sortBy('searchterms','campaign_name')">Campaign</th>
               <th onclick="sortBy('searchterms','ad_group_name')">Ad Group</th>
@@ -648,6 +738,158 @@ tr:hover td { background: rgba(255,255,255,0.02); }
               <th onclick="sortBy('searchterms','conversion_rate')" class="text-right">Conv%</th>
             </tr></thead><tbody id="tbody-searchterms"><tr class="loading-row"><td colspan="11">Loading search terms…</td></tr></tbody></table></div>
             <div class="table-footer"><span id="count-searchterms"></span><div class="pagination" id="pages-searchterms"></div></div>
+          </div>
+        </div>
+
+        <!-- ── GEO PERFORMANCE ── -->
+        <div id="view-geo" style="display:none">
+          <div class="table-card">
+            <div class="table-toolbar">
+              <div class="table-title">Geographic Performance</div>
+              <input class="search-input" placeholder="Search countries..." oninput="filterTable('geo',this.value)" id="search-geo">
+              <button class="btn btn-secondary btn-sm" onclick="loadView('geo')">↻ Refresh</button>
+            </div>
+            <div class="table-wrap"><table id="table-geo"><thead><tr>
+              <th onclick="sortBy('geo','country')">Country</th>
+              <th onclick="sortBy('geo','impressions')" class="text-right">Impr.</th>
+              <th onclick="sortBy('geo','clicks')" class="text-right">Clicks</th>
+              <th onclick="sortBy('geo','ctr')" class="text-right">CTR</th>
+              <th onclick="sortBy('geo','avg_cpc')" class="text-right">CPC</th>
+              <th onclick="sortBy('geo','cost')" class="text-right">Spend</th>
+              <th onclick="sortBy('geo','conversions')" class="text-right">Conv.</th>
+              <th onclick="sortBy('geo','conversion_rate')" class="text-right">Conv%</th>
+              <th onclick="sortBy('geo','conversions_value')" class="text-right">Conv. Value</th>
+              <th onclick="sortBy('geo','roas')" class="text-right">ROAS</th>
+            </tr></thead><tbody id="tbody-geo"><tr class="loading-row"><td colspan="10">Loading geo data…</td></tr></tbody></table></div>
+            <div class="table-footer"><span id="count-geo"></span><div class="pagination" id="pages-geo"></div></div>
+          </div>
+        </div>
+
+        <!-- ── DEMOGRAPHICS ── -->
+        <div id="view-demographics" style="display:none">
+          <div class="two-col">
+            <div class="chart-card">
+              <div class="chart-header"><div class="chart-title">Clicks by Age Group</div></div>
+              <div class="chart-wrap"><canvas id="chart-age"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-header"><div class="chart-title">Spend by Gender</div></div>
+              <div class="chart-wrap"><canvas id="chart-gender"></canvas></div>
+            </div>
+          </div>
+          <div class="two-col">
+            <div class="table-card">
+              <div class="table-toolbar"><div class="table-title">Age Breakdown</div></div>
+              <div class="table-wrap"><table id="table-age"><thead><tr>
+                <th onclick="sortBy('age','age')">Age Group</th>
+                <th onclick="sortBy('age','impressions')" class="text-right">Impr.</th>
+                <th onclick="sortBy('age','clicks')" class="text-right">Clicks</th>
+                <th onclick="sortBy('age','ctr')" class="text-right">CTR</th>
+                <th onclick="sortBy('age','cost')" class="text-right">Spend</th>
+                <th onclick="sortBy('age','conversions')" class="text-right">Conv.</th>
+                <th onclick="sortBy('age','roas')" class="text-right">ROAS</th>
+              </tr></thead><tbody id="tbody-age"><tr class="loading-row"><td colspan="7">Loading…</td></tr></tbody></table></div>
+            </div>
+            <div class="table-card">
+              <div class="table-toolbar"><div class="table-title">Gender Breakdown</div></div>
+              <div class="table-wrap"><table id="table-gender"><thead><tr>
+                <th onclick="sortBy('gender','gender')">Gender</th>
+                <th onclick="sortBy('gender','impressions')" class="text-right">Impr.</th>
+                <th onclick="sortBy('gender','clicks')" class="text-right">Clicks</th>
+                <th onclick="sortBy('gender','ctr')" class="text-right">CTR</th>
+                <th onclick="sortBy('gender','cost')" class="text-right">Spend</th>
+                <th onclick="sortBy('gender','conversions')" class="text-right">Conv.</th>
+                <th onclick="sortBy('gender','roas')" class="text-right">ROAS</th>
+              </tr></thead><tbody id="tbody-gender"><tr class="loading-row"><td colspan="7">Loading…</td></tr></tbody></table></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── TIME ANALYSIS ── -->
+        <div id="view-timeanalysis" style="display:none">
+          <div class="two-col">
+            <div class="chart-card">
+              <div class="chart-header">
+                <div><div class="chart-title">Hour of Day</div><div class="chart-subtitle">Aggregated across period</div></div>
+                <div class="metric-tabs">
+                  <button class="metric-tab active" id="time-tab-clicks" onclick="switchTimeMetric('clicks',this)">Clicks</button>
+                  <button class="metric-tab" id="time-tab-cost" onclick="switchTimeMetric('cost',this)">Cost</button>
+                  <button class="metric-tab" id="time-tab-conv" onclick="switchTimeMetric('conversions',this)">Conv.</button>
+                </div>
+              </div>
+              <div class="chart-wrap"><canvas id="chart-hourly"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-header"><div class="chart-title">Day of Week</div></div>
+              <div class="chart-wrap"><canvas id="chart-dow"></canvas></div>
+            </div>
+          </div>
+          <div class="two-col">
+            <div class="table-card">
+              <div class="table-toolbar"><div class="table-title">Hourly Breakdown</div></div>
+              <div class="table-wrap"><table><thead><tr>
+                <th>Hour</th>
+                <th class="text-right">Impr.</th>
+                <th class="text-right">Clicks</th>
+                <th class="text-right">Spend</th>
+                <th class="text-right">Conv.</th>
+              </tr></thead><tbody id="tbody-hours"><tr class="loading-row"><td colspan="5">Loading…</td></tr></tbody></table></div>
+            </div>
+            <div class="table-card">
+              <div class="table-toolbar"><div class="table-title">Day of Week Breakdown</div></div>
+              <div class="table-wrap"><table><thead><tr>
+                <th>Day</th>
+                <th class="text-right">Impr.</th>
+                <th class="text-right">Clicks</th>
+                <th class="text-right">Spend</th>
+                <th class="text-right">Conv.</th>
+              </tr></thead><tbody id="tbody-dowt"><tr class="loading-row"><td colspan="5">Loading…</td></tr></tbody></table></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── AUCTION INSIGHTS ── -->
+        <div id="view-auctions" style="display:none">
+          <div class="table-card">
+            <div class="table-toolbar">
+              <div class="table-title">Auction Insights</div>
+              <input class="search-input" placeholder="Search domains..." oninput="filterTable('auctions',this.value)" id="search-auctions">
+              <button class="btn btn-secondary btn-sm" onclick="loadView('auctions')">↻ Refresh</button>
+            </div>
+            <div class="table-wrap"><table id="table-auctions"><thead><tr>
+              <th onclick="sortBy('auctions','domain')">Domain</th>
+              <th onclick="sortBy('auctions','impression_share')" class="text-right">Impr. Share</th>
+              <th onclick="sortBy('auctions','overlap_rate')" class="text-right">Overlap Rate</th>
+              <th onclick="sortBy('auctions','position_above_rate')" class="text-right">Position Above Rate</th>
+              <th onclick="sortBy('auctions','top_is')" class="text-right">Top IS</th>
+              <th onclick="sortBy('auctions','abs_top_is')" class="text-right">Abs. Top IS</th>
+              <th onclick="sortBy('auctions','outranking_share')" class="text-right">Outranking Share</th>
+            </tr></thead><tbody id="tbody-auctions"><tr class="loading-row"><td colspan="7">Loading auction data…</td></tr></tbody></table></div>
+            <div class="table-footer"><span id="count-auctions"></span><div class="pagination" id="pages-auctions"></div></div>
+          </div>
+        </div>
+
+        <!-- ── ASSETS ── -->
+        <div id="view-assets" style="display:none">
+          <div class="table-card">
+            <div class="table-toolbar">
+              <div class="table-title">Asset Performance</div>
+              <input class="search-input" placeholder="Search assets..." oninput="filterTable('assets',this.value)" id="search-assets">
+              <button class="btn btn-secondary btn-sm" onclick="loadView('assets')">↻ Refresh</button>
+            </div>
+            <div class="table-wrap"><table id="table-assets"><thead><tr>
+              <th onclick="sortBy('assets','text')">Asset Text</th>
+              <th onclick="sortBy('assets','field_type')">Field Type</th>
+              <th onclick="sortBy('assets','perf')">Performance</th>
+              <th onclick="sortBy('assets','campaign')">Campaign</th>
+              <th onclick="sortBy('assets','impressions')" class="text-right">Impr.</th>
+              <th onclick="sortBy('assets','clicks')" class="text-right">Clicks</th>
+              <th onclick="sortBy('assets','ctr')" class="text-right">CTR</th>
+              <th onclick="sortBy('assets','cost')" class="text-right">Spend</th>
+              <th onclick="sortBy('assets','conversions')" class="text-right">Conv.</th>
+              <th onclick="sortBy('assets','avg_cpc')" class="text-right">CPC</th>
+            </tr></thead><tbody id="tbody-assets"><tr class="loading-row"><td colspan="10">Loading assets…</td></tr></tbody></table></div>
+            <div class="table-footer"><span id="count-assets"></span><div class="pagination" id="pages-assets"></div></div>
           </div>
         </div>
 
@@ -729,7 +971,7 @@ const S = {
   preset: 'last30',
   start: '', end: '',
   auth: null,
-  data: { overview:null, timeseries:[], campaigns:[], adGroups:[], ads:[], keywords:[], searchTerms:[], devices:[], insights:null },
+  data: { overview:null, timeseries:[], campaigns:[], adGroups:[], ads:[], keywords:[], searchTerms:[], devices:[], insights:null, geo:[], demographics:null, timeAnalysis:null, auctionInsights:[], assets:[] },
   ui: { sort:{}, dir:{}, search:{}, page:{}, pageSize:20 },
   charts: {},
   currentExportData: [],
@@ -737,13 +979,18 @@ const S = {
 };
 
 const VIEWS = {
-  overview:    { title:'Overview',        sub:'Account performance at a glance',          export:false },
-  campaigns:   { title:'Campaigns',       sub:'Campaign-level performance breakdown',      export:true },
-  adgroups:    { title:'Ad Groups',       sub:'Ad group performance across all campaigns', export:true },
-  ads:         { title:'Ads',             sub:'Individual ad performance and previews',    export:true },
-  keywords:    { title:'Keywords',        sub:'Keyword performance and quality scores',    export:true },
-  searchterms: { title:'Search Terms',    sub:'Actual queries that triggered your ads',    export:true },
-  insights:    { title:'AI Insights',     sub:'Claude AI analysis and recommendations',    export:false },
+  overview:     { title:'Overview',           sub:'Account performance at a glance',              export:false },
+  campaigns:    { title:'Campaigns',          sub:'Campaign-level performance breakdown',          export:true  },
+  adgroups:     { title:'Ad Groups',          sub:'Ad group performance across all campaigns',     export:true  },
+  ads:          { title:'Ads',                sub:'Individual ad performance and previews',        export:true  },
+  keywords:     { title:'Keywords',           sub:'Keyword performance and quality scores',        export:true  },
+  searchterms:  { title:'Search Terms',       sub:'Actual queries that triggered your ads',        export:true  },
+  insights:     { title:'AI Insights',        sub:'Claude AI analysis and recommendations',        export:false },
+  geo:          { title:'Geo Performance',    sub:'Geographic breakdown by country',               export:true  },
+  demographics: { title:'Demographics',       sub:'Age and gender audience performance',           export:false },
+  timeanalysis: { title:'Time Analysis',      sub:'Performance by hour of day and day of week',   export:false },
+  auctions:     { title:'Auction Insights',   sub:'Competitive impression share landscape',        export:true  },
+  assets:       { title:'Assets',             sub:'Creative asset performance and labels',         export:true  },
 };
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -914,13 +1161,18 @@ function navigate(view) {
 
 async function loadCurrentView() {
   switch (S.view) {
-    case 'overview':    await loadOverview(); break;
-    case 'campaigns':   await loadView('campaigns'); break;
-    case 'adgroups':    await loadView('adgroups'); break;
-    case 'ads':         await loadView('ads'); break;
-    case 'keywords':    await loadView('keywords'); break;
-    case 'searchterms': await loadView('searchterms'); break;
-    case 'insights':    showInsightsPanel(); break;
+    case 'overview':     await loadOverview(); break;
+    case 'campaigns':    await loadView('campaigns'); break;
+    case 'adgroups':     await loadView('adgroups'); break;
+    case 'ads':          await loadView('ads'); break;
+    case 'keywords':     await loadView('keywords'); break;
+    case 'searchterms':  await loadView('searchterms'); break;
+    case 'insights':     showInsightsPanel(); break;
+    case 'geo':          await loadView('geo'); break;
+    case 'demographics': await loadDemographics(); break;
+    case 'timeanalysis': await loadTimeAnalysis(); break;
+    case 'auctions':     await loadView('auctions'); break;
+    case 'assets':       await loadView('assets'); break;
   }
 }
 
@@ -979,7 +1231,9 @@ async function fetchData(view) {
     S.data.overview = all.overview; S.data.timeseries = all.timeseries;
     S.data.campaigns = all.campaigns; S.data.adGroups = all.adGroups;
     S.data.ads = all.ads; S.data.keywords = all.keywords; S.data.searchTerms = all.searchTerms;
-    S.data.devices = all.devices;
+    S.data.devices = all.devices; S.data.geo = all.geo || [];
+    S.data.demographics = all.demographics || null; S.data.timeAnalysis = all.timeAnalysis || null;
+    S.data.auctionInsights = all.auctionInsights || []; S.data.assets = all.assets || [];
     return all;
   }
   switch (view) {
@@ -992,11 +1246,16 @@ async function fetchData(view) {
       S.data.overview = ov; S.data.timeseries = ts.data; S.data.devices = dev.devices;
       return;
     }
-    case 'campaigns': { const r = await apiFetch(`/api/campaigns?${qs}`); S.data.campaigns = r.campaigns; return; }
-    case 'adgroups':  { const r = await apiFetch(`/api/adgroups?${qs}`); S.data.adGroups = r.adGroups; return; }
-    case 'ads':       { const r = await apiFetch(`/api/ads?${qs}`); S.data.ads = r.ads; return; }
-    case 'keywords':  { const r = await apiFetch(`/api/keywords?${qs}`); S.data.keywords = r.keywords; return; }
-    case 'searchterms': { const r = await apiFetch(`/api/search-terms?${qs}`); S.data.searchTerms = r.searchTerms; return; }
+    case 'campaigns':    { const r = await apiFetch(`/api/campaigns?${qs}`); S.data.campaigns = r.campaigns; return; }
+    case 'adgroups':     { const r = await apiFetch(`/api/adgroups?${qs}`); S.data.adGroups = r.adGroups; return; }
+    case 'ads':          { const r = await apiFetch(`/api/ads?${qs}`); S.data.ads = r.ads; return; }
+    case 'keywords':     { const r = await apiFetch(`/api/keywords?${qs}`); S.data.keywords = r.keywords; return; }
+    case 'searchterms':  { const r = await apiFetch(`/api/search-terms?${qs}`); S.data.searchTerms = r.searchTerms; return; }
+    case 'geo':          { const r = await apiFetch(`/api/geo?${qs}`); S.data.geo = r.geo; return; }
+    case 'demographics': { const r = await apiFetch(`/api/demographics?${qs}`); S.data.demographics = r; return; }
+    case 'timeanalysis': { const r = await apiFetch(`/api/time-analysis?${qs}`); S.data.timeAnalysis = r; return; }
+    case 'auctions':     { const r = await apiFetch(`/api/auction-insights?${qs}`); S.data.auctionInsights = r.auctionInsights; return; }
+    case 'assets':       { const r = await apiFetch(`/api/assets?${qs}`); S.data.assets = r.assets; return; }
   }
 }
 
@@ -1198,95 +1457,154 @@ async function loadView(view) {
 
 function renderView(view) {
   switch (view) {
-    case 'campaigns':   renderTable('campaigns', S.data.campaigns, campaignCols()); break;
-    case 'adgroups':    renderTable('adgroups', S.data.adGroups, adGroupCols()); break;
-    case 'ads':         renderTable('ads', S.data.ads, adCols()); break;
-    case 'keywords':    renderTable('keywords', S.data.keywords, keywordCols()); break;
-    case 'searchterms': renderTable('searchterms', S.data.searchTerms, searchTermCols()); break;
+    case 'campaigns':   renderTable('campaigns', S.data.campaigns, applyColVis('campaigns', campaignCols())); break;
+    case 'adgroups':    renderTable('adgroups', S.data.adGroups, applyColVis('adgroups', adGroupCols())); break;
+    case 'ads':         renderTable('ads', S.data.ads, applyColVis('ads', adCols())); break;
+    case 'keywords':    renderTable('keywords', S.data.keywords, applyColVis('keywords', keywordCols())); break;
+    case 'searchterms': renderTable('searchterms', S.data.searchTerms, applyColVis('searchterms', searchTermCols())); break;
+    case 'geo':         renderTable('geo', S.data.geo, geoCols()); break;
+    case 'auctions':    renderTable('auctions', S.data.auctionInsights, auctionCols()); break;
+    case 'assets':      renderTable('assets', S.data.assets, assetCols()); break;
   }
 }
 
 // ─── Column Definitions ───────────────────────────────────────────────────
 function campaignCols() {
   return [
-    { key:'name', render: r => `<strong>${r.name}</strong>` },
-    { key:'status', render: r => statusBadge(r.status) },
-    { key:'channel', render: r => channelBadge(r.channel) },
-    { key:'impressions', right:true, render: r => fmtImpr(r.impressions) },
-    { key:'clicks', right:true, render: r => fmtN(r.clicks) },
-    { key:'ctr', right:true, render: r => fmtP(r.ctr) },
-    { key:'avg_cpc', right:true, render: r => fmtM(r.avg_cpc) },
-    { key:'cost', right:true, render: r => `<strong>${fmtM(r.cost)}</strong>` },
-    { key:'conversions', right:true, render: r => fmtN(r.conversions, 1) },
-    { key:'conversion_rate', right:true, render: r => fmtP(r.conversion_rate) },
-    { key:'roas', right:true, render: r => `<span style="color:${r.roas>=2?'var(--green)':r.roas>=1?'var(--yellow)':'var(--red)'}">${fmtX(r.roas)}</span>` },
-    { key:'impression_share', right:true, render: r => isBar(r.impression_share) },
+    { key:'name',             label:'Campaign',    required:true, render: r => `<strong>${r.name}</strong>` },
+    { key:'status',           label:'Status',      render: r => statusBadge(r.status) },
+    { key:'channel',          label:'Type',        render: r => channelBadge(r.channel) },
+    { key:'bidding',          label:'Bidding',     render: r => `<span class="badge badge-gray" style="font-size:9px">${r.bidding||'—'}</span>` },
+    { key:'impressions',      label:'Impr.',       right:true, render: r => fmtImpr(r.impressions) },
+    { key:'clicks',           label:'Clicks',      right:true, render: r => fmtN(r.clicks) },
+    { key:'ctr',              label:'CTR',         right:true, render: r => fmtP(r.ctr) },
+    { key:'avg_cpc',          label:'CPC',         right:true, render: r => fmtM(r.avg_cpc) },
+    { key:'cost',             label:'Spend',       right:true, render: r => `<strong>${fmtM(r.cost)}</strong>` },
+    { key:'conversions',      label:'Conv.',       right:true, render: r => fmtN(r.conversions, 1) },
+    { key:'conversions_value',label:'Conv. Value', right:true, render: r => fmtM(r.conversions_value||0) },
+    { key:'conversion_rate',  label:'Conv%',       right:true, render: r => fmtP(r.conversion_rate) },
+    { key:'roas',             label:'ROAS',        right:true, render: r => `<span style="color:${r.roas>=2?'var(--green)':r.roas>=1?'var(--yellow)':'var(--red)'}">${fmtX(r.roas)}</span>` },
+    { key:'impression_share', label:'IS',          right:true, render: r => isBar(r.impression_share) },
+    { key:'lost_is_budget',   label:'Lost IS (Bdg)',right:true,render: r => r.lost_is_budget>0?`<span style="color:var(--orange)">${fmtP(r.lost_is_budget)}</span>`:'—' },
+    { key:'lost_is_rank',     label:'Lost IS (Rnk)',right:true,render: r => r.lost_is_rank>0?`<span style="color:var(--red)">${fmtP(r.lost_is_rank)}</span>`:'—' },
   ];
 }
 
 function adGroupCols() {
   return [
-    { key:'campaign_name', render: r => `<span class="text-muted text-sm">${r.campaign_name}</span>` },
-    { key:'name', render: r => `<strong>${r.name}</strong>` },
-    { key:'status', render: r => statusBadge(r.status) },
-    { key:'impressions', right:true, render: r => fmtImpr(r.impressions) },
-    { key:'clicks', right:true, render: r => fmtN(r.clicks) },
-    { key:'ctr', right:true, render: r => fmtP(r.ctr) },
-    { key:'avg_cpc', right:true, render: r => fmtM(r.avg_cpc) },
-    { key:'cost', right:true, render: r => `<strong>${fmtM(r.cost)}</strong>` },
-    { key:'conversions', right:true, render: r => fmtN(r.conversions, 1) },
-    { key:'conversion_rate', right:true, render: r => fmtP(r.conversion_rate) },
-    { key:'roas', right:true, render: r => `<span style="color:${r.roas>=2?'var(--green)':r.roas>=1?'var(--yellow)':'var(--red)'}">${fmtX(r.roas)}</span>` },
+    { key:'campaign_name',   label:'Campaign',   required:true, render: r => `<span class="text-muted text-sm">${r.campaign_name}</span>` },
+    { key:'name',            label:'Ad Group',   required:true, render: r => `<strong>${r.name}</strong>` },
+    { key:'status',          label:'Status',     render: r => statusBadge(r.status) },
+    { key:'impressions',     label:'Impr.',      right:true, render: r => fmtImpr(r.impressions) },
+    { key:'clicks',          label:'Clicks',     right:true, render: r => fmtN(r.clicks) },
+    { key:'ctr',             label:'CTR',        right:true, render: r => fmtP(r.ctr) },
+    { key:'avg_cpc',         label:'CPC',        right:true, render: r => fmtM(r.avg_cpc) },
+    { key:'cost',            label:'Spend',      right:true, render: r => `<strong>${fmtM(r.cost)}</strong>` },
+    { key:'conversions',     label:'Conv.',      right:true, render: r => fmtN(r.conversions, 1) },
+    { key:'conversions_value',label:'Conv. Value',right:true,render: r => fmtM(r.conversions_value||0) },
+    { key:'conversion_rate', label:'Conv%',      right:true, render: r => fmtP(r.conversion_rate) },
+    { key:'roas',            label:'ROAS',       right:true, render: r => `<span style="color:${r.roas>=2?'var(--green)':r.roas>=1?'var(--yellow)':'var(--red)'}">${fmtX(r.roas)}</span>` },
   ];
 }
 
 function adCols() {
   return [
-    { key:'campaign_name', render: r => `<span class="text-muted text-sm" style="max-width:120px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.campaign_name}</span>` },
-    { key:'ad_group_name', render: r => `<span class="text-muted text-sm" style="max-width:100px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.ad_group_name}</span>` },
-    { key:'_preview', render: r => `<div class="ad-preview"><div class="ad-url">${r.final_url ? new URL(r.final_url).hostname : '—'}</div><div class="ad-headline">${r.headlines || r.name}</div><div class="ad-desc">${r.descriptions || ''}</div></div>` },
-    { key:'type', render: r => adTypeBadge(r.type) },
-    { key:'status', render: r => statusBadge(r.status) },
-    { key:'impressions', right:true, render: r => fmtImpr(r.impressions) },
-    { key:'clicks', right:true, render: r => fmtN(r.clicks) },
-    { key:'ctr', right:true, render: r => fmtP(r.ctr) },
-    { key:'cost', right:true, render: r => fmtM(r.cost) },
-    { key:'conversions', right:true, render: r => fmtN(r.conversions, 1) },
-    { key:'roas', right:true, render: r => `<span style="color:${r.roas>=2?'var(--green)':r.roas>=1?'var(--yellow)':'var(--red)'}">${fmtX(r.roas)}</span>` },
+    { key:'campaign_name', label:'Campaign',  required:true, render: r => `<span class="text-muted text-sm" style="max-width:120px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.campaign_name}</span>` },
+    { key:'ad_group_name', label:'Ad Group',  render: r => `<span class="text-muted text-sm" style="max-width:100px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.ad_group_name}</span>` },
+    { key:'_preview',      label:'Ad Preview',required:true, render: r => { try { return `<div class="ad-preview"><div class="ad-url">${r.final_url ? new URL(r.final_url).hostname : '—'}</div><div class="ad-headline">${r.headlines || r.name}</div><div class="ad-desc">${r.descriptions || ''}</div></div>`; } catch(e) { return `<div class="ad-preview"><div class="ad-headline">${r.name||'—'}</div></div>`; } } },
+    { key:'type',          label:'Type',      render: r => adTypeBadge(r.type) },
+    { key:'status',        label:'Status',    render: r => statusBadge(r.status) },
+    { key:'impressions',   label:'Impr.',     right:true, render: r => fmtImpr(r.impressions) },
+    { key:'clicks',        label:'Clicks',    right:true, render: r => fmtN(r.clicks) },
+    { key:'ctr',           label:'CTR',       right:true, render: r => fmtP(r.ctr) },
+    { key:'avg_cpc',       label:'CPC',       right:true, render: r => fmtM(r.avg_cpc||0) },
+    { key:'cost',          label:'Spend',     right:true, render: r => fmtM(r.cost) },
+    { key:'conversions',   label:'Conv.',     right:true, render: r => fmtN(r.conversions, 1) },
+    { key:'conversions_value',label:'Conv. Value',right:true,render: r => fmtM(r.conversions_value||0) },
+    { key:'conversion_rate',label:'Conv%',   right:true, render: r => fmtP(r.conversion_rate||0) },
+    { key:'roas',          label:'ROAS',      right:true, render: r => `<span style="color:${r.roas>=2?'var(--green)':r.roas>=1?'var(--yellow)':'var(--red)'}">${fmtX(r.roas)}</span>` },
   ];
 }
 
 function keywordCols() {
   return [
-    { key:'campaign_name', render: r => `<span class="text-muted text-sm">${r.campaign_name}</span>` },
-    { key:'ad_group_name', render: r => `<span class="text-muted text-sm">${r.ad_group_name}</span>` },
-    { key:'keyword', render: r => `<strong>${r.keyword}</strong>` },
-    { key:'match_type', render: r => matchBadge(r.match_type) },
-    { key:'status', render: r => statusBadge(r.status) },
-    { key:'quality_score', right:true, render: r => qsBar(r.quality_score) },
-    { key:'impressions', right:true, render: r => fmtImpr(r.impressions) },
-    { key:'clicks', right:true, render: r => fmtN(r.clicks) },
-    { key:'ctr', right:true, render: r => fmtP(r.ctr) },
-    { key:'avg_cpc', right:true, render: r => fmtM(r.avg_cpc) },
-    { key:'cost', right:true, render: r => fmtM(r.cost) },
-    { key:'conversions', right:true, render: r => fmtN(r.conversions, 1) },
-    { key:'impression_share', right:true, render: r => isBar(r.impression_share) },
+    { key:'campaign_name',   label:'Campaign',   required:true, render: r => `<span class="text-muted text-sm">${r.campaign_name}</span>` },
+    { key:'ad_group_name',   label:'Ad Group',   render: r => `<span class="text-muted text-sm">${r.ad_group_name}</span>` },
+    { key:'keyword',         label:'Keyword',    required:true, render: r => `<strong>${r.keyword}</strong>` },
+    { key:'match_type',      label:'Match',      render: r => matchBadge(r.match_type) },
+    { key:'status',          label:'Status',     render: r => statusBadge(r.status) },
+    { key:'quality_score',   label:'QS',         right:true, render: r => qsBar(r.quality_score) },
+    { key:'impressions',     label:'Impr.',      right:true, render: r => fmtImpr(r.impressions) },
+    { key:'clicks',          label:'Clicks',     right:true, render: r => fmtN(r.clicks) },
+    { key:'ctr',             label:'CTR',        right:true, render: r => fmtP(r.ctr) },
+    { key:'avg_cpc',         label:'CPC',        right:true, render: r => fmtM(r.avg_cpc) },
+    { key:'cost',            label:'Spend',      right:true, render: r => fmtM(r.cost) },
+    { key:'conversions',     label:'Conv.',      right:true, render: r => fmtN(r.conversions, 1) },
+    { key:'conversion_rate', label:'Conv%',      right:true, render: r => fmtP(r.conversion_rate) },
+    { key:'impression_share',label:'IS',         right:true, render: r => isBar(r.impression_share) },
   ];
 }
 
 function searchTermCols() {
   return [
-    { key:'campaign_name', render: r => `<span class="text-muted text-sm">${r.campaign_name}</span>` },
-    { key:'ad_group_name', render: r => `<span class="text-muted text-sm">${r.ad_group_name}</span>` },
-    { key:'search_term', render: r => `<strong>${r.search_term}</strong>` },
-    { key:'status', render: r => stBadge(r.status) },
-    { key:'impressions', right:true, render: r => fmtImpr(r.impressions) },
-    { key:'clicks', right:true, render: r => fmtN(r.clicks) },
-    { key:'ctr', right:true, render: r => fmtP(r.ctr) },
-    { key:'avg_cpc', right:true, render: r => fmtM(r.avg_cpc) },
-    { key:'cost', right:true, render: r => fmtM(r.cost) },
-    { key:'conversions', right:true, render: r => fmtN(r.conversions, 1) },
-    { key:'conversion_rate', right:true, render: r => fmtP(r.conversion_rate) },
+    { key:'campaign_name',   label:'Campaign',   required:true, render: r => `<span class="text-muted text-sm">${r.campaign_name}</span>` },
+    { key:'ad_group_name',   label:'Ad Group',   render: r => `<span class="text-muted text-sm">${r.ad_group_name}</span>` },
+    { key:'search_term',     label:'Search Term',required:true, render: r => `<strong>${r.search_term}</strong>` },
+    { key:'status',          label:'Status',     render: r => stBadge(r.status) },
+    { key:'impressions',     label:'Impr.',      right:true, render: r => fmtImpr(r.impressions) },
+    { key:'clicks',          label:'Clicks',     right:true, render: r => fmtN(r.clicks) },
+    { key:'ctr',             label:'CTR',        right:true, render: r => fmtP(r.ctr) },
+    { key:'avg_cpc',         label:'CPC',        right:true, render: r => fmtM(r.avg_cpc) },
+    { key:'cost',            label:'Spend',      right:true, render: r => fmtM(r.cost) },
+    { key:'conversions',     label:'Conv.',      right:true, render: r => fmtN(r.conversions, 1) },
+    { key:'conversion_rate', label:'Conv%',      right:true, render: r => fmtP(r.conversion_rate) },
+  ];
+}
+
+function geoCols() {
+  return [
+    { key:'country',          label:'Country',     required:true, render: r => `<strong>${r.country}</strong>` },
+    { key:'impressions',      label:'Impr.',        right:true, render: r => fmtImpr(r.impressions) },
+    { key:'clicks',           label:'Clicks',       right:true, render: r => fmtN(r.clicks) },
+    { key:'ctr',              label:'CTR',          right:true, render: r => fmtP(r.ctr) },
+    { key:'avg_cpc',          label:'CPC',          right:true, render: r => fmtM(r.avg_cpc) },
+    { key:'cost',             label:'Spend',        right:true, render: r => `<strong>${fmtM(r.cost)}</strong>` },
+    { key:'conversions',      label:'Conv.',        right:true, render: r => fmtN(r.conversions, 1) },
+    { key:'conversion_rate',  label:'Conv%',        right:true, render: r => fmtP(r.conversion_rate) },
+    { key:'conversions_value',label:'Conv. Value',  right:true, render: r => fmtM(r.conversions_value||0) },
+    { key:'roas',             label:'ROAS',         right:true, render: r => `<span style="color:${r.roas>=2?'var(--green)':r.roas>=1?'var(--yellow)':'var(--red)'}">${fmtX(r.roas)}</span>` },
+  ];
+}
+
+function auctionCols() {
+  return [
+    { key:'domain',              label:'Domain',            required:true, render: r => r.domain==='(Your account)'?`<span class="auction-you">${r.domain}</span>`:`<span>${r.domain}</span>` },
+    { key:'impression_share',    label:'Impr. Share',       right:true, render: r => `<div class="is-bar-wrap"><div class="is-bar"><div class="is-fill" style="width:${Math.min(r.impression_share*100,100).toFixed(0)}%"></div></div><span class="pct-cell">${(r.impression_share*100).toFixed(1)}%</span></div>` },
+    { key:'overlap_rate',        label:'Overlap Rate',      right:true, render: r => `<span class="pct-cell">${(r.overlap_rate*100).toFixed(1)}%</span>` },
+    { key:'position_above_rate', label:'Position Above',    right:true, render: r => `<span class="pct-cell">${(r.position_above_rate*100).toFixed(1)}%</span>` },
+    { key:'top_is',              label:'Top IS',            right:true, render: r => `<span class="pct-cell">${(r.top_is*100).toFixed(1)}%</span>` },
+    { key:'abs_top_is',          label:'Abs. Top IS',       right:true, render: r => `<span class="pct-cell">${(r.abs_top_is*100).toFixed(1)}%</span>` },
+    { key:'outranking_share',    label:'Outranking Share',  right:true, render: r => `<span class="pct-cell">${(r.outranking_share*100).toFixed(1)}%</span>` },
+  ];
+}
+
+function assetCols() {
+  const perfBadge = p => {
+    if (!p || p==='UNSPECIFIED'||p==='UNKNOWN') return '<span class="text-muted">—</span>';
+    const cls = p==='BEST'?'perf-best':p==='GOOD'?'perf-good':p==='LOW'?'perf-low':'perf-pending';
+    return `<span class="${cls}"><span class="perf-dot"></span>${p}</span>`;
+  };
+  return [
+    { key:'text',       label:'Asset',        required:true, render: r => `<span style="max-width:220px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.text||r.name||''}">${r.text||r.name||'—'}</span>` },
+    { key:'field_type', label:'Field Type',   render: r => `<span class="badge badge-blue">${r.field_type||'—'}</span>` },
+    { key:'perf',       label:'Performance',  render: r => perfBadge(r.perf) },
+    { key:'campaign',   label:'Campaign',     render: r => `<span class="text-muted text-sm">${r.campaign||'—'}</span>` },
+    { key:'impressions',label:'Impr.',        right:true, render: r => fmtImpr(r.impressions) },
+    { key:'clicks',     label:'Clicks',       right:true, render: r => fmtN(r.clicks) },
+    { key:'ctr',        label:'CTR',          right:true, render: r => fmtP(r.ctr) },
+    { key:'cost',       label:'Spend',        right:true, render: r => fmtM(r.cost) },
+    { key:'conversions',label:'Conv.',        right:true, render: r => fmtN(r.conversions, 1) },
+    { key:'avg_cpc',    label:'CPC',          right:true, render: r => fmtM(r.avg_cpc) },
   ];
 }
 
@@ -1373,6 +1691,263 @@ function filterTable(view, q) {
 function goPage(view, p) {
   S.ui.page[view] = p;
   renderView(view);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// DEMOGRAPHICS
+// ════════════════════════════════════════════════════════════════════════════
+async function loadDemographics() {
+  document.getElementById('tbody-age').innerHTML = '<tr class="loading-row"><td colspan="7">Loading…</td></tr>';
+  document.getElementById('tbody-gender').innerHTML = '<tr class="loading-row"><td colspan="7">Loading…</td></tr>';
+  try {
+    await fetchData('demographics');
+    renderDemographics();
+  } catch(e) { toast(e.message, true); }
+}
+
+function renderDemographics() {
+  const d = S.data.demographics;
+  if (!d) return;
+  const age = d.age || [], gender = d.gender || [];
+
+  // Age chart
+  const actx = document.getElementById('chart-age');
+  if (S.charts.age) S.charts.age.destroy();
+  S.charts.age = new Chart(actx, {
+    type: 'bar',
+    data: { labels: age.map(a=>a.age), datasets: [
+      { label:'Clicks', data: age.map(a=>a.clicks), backgroundColor:'#5865f2' },
+      { label:'Conv.', data: age.map(a=>a.conversions), backgroundColor:'#22d87b', yAxisID:'y2' }
+    ]},
+    options: { responsive:true, maintainAspectRatio:false, animation:{duration:400},
+      plugins:{ legend:{labels:{color:'#8b90b8',font:{size:10}}}, tooltip:{backgroundColor:'#1e2236',borderColor:'#2e3352',borderWidth:1,titleColor:'#dde1f5',bodyColor:'#8b90b8'} },
+      scales:{ x:{grid:{display:false},ticks:{color:'#555a7a',font:{size:10}}},
+        y:{grid:{color:'#1e2236'},ticks:{color:'#555a7a',font:{size:10}},position:'left'},
+        y2:{grid:{display:false},ticks:{color:'#22d87b',font:{size:10}},position:'right'} } }
+  });
+
+  // Gender chart
+  const gctx = document.getElementById('chart-gender');
+  if (S.charts.gender) S.charts.gender.destroy();
+  S.charts.gender = new Chart(gctx, {
+    type:'doughnut',
+    data:{ labels:gender.map(g=>g.gender), datasets:[{ data:gender.map(g=>g.cost), backgroundColor:['#5865f2','#a855f7','#555a7a'], borderWidth:0, hoverOffset:4 }] },
+    options:{ responsive:true, maintainAspectRatio:false, animation:{duration:400}, cutout:'65%',
+      plugins:{ legend:{position:'bottom',labels:{color:'#8b90b8',font:{size:11},padding:10}},
+        tooltip:{backgroundColor:'#1e2236',borderColor:'#2e3352',borderWidth:1,titleColor:'#dde1f5',bodyColor:'#8b90b8',callbacks:{label:ctx=>` ${ctx.label}: ${fmtM(ctx.raw)}`}} } }
+  });
+
+  // Age table
+  document.getElementById('tbody-age').innerHTML = age.length
+    ? age.map(r=>`<tr><td><strong>${r.age}</strong></td><td class="text-right">${fmtImpr(r.impressions)}</td><td class="text-right">${fmtN(r.clicks)}</td><td class="text-right">${fmtP(r.ctr)}</td><td class="text-right">${fmtM(r.cost)}</td><td class="text-right">${fmtN(r.conversions,1)}</td><td class="text-right"><span style="color:${r.roas>=2?'var(--green)':r.roas>=1?'var(--yellow)':'var(--red)'}">${fmtX(r.roas)}</span></td></tr>`).join('')
+    : '<tr class="loading-row"><td colspan="7">No data</td></tr>';
+
+  // Gender table
+  document.getElementById('tbody-gender').innerHTML = gender.length
+    ? gender.map(r=>`<tr><td><strong>${r.gender}</strong></td><td class="text-right">${fmtImpr(r.impressions)}</td><td class="text-right">${fmtN(r.clicks)}</td><td class="text-right">${fmtP(r.ctr)}</td><td class="text-right">${fmtM(r.cost)}</td><td class="text-right">${fmtN(r.conversions,1)}</td><td class="text-right"><span style="color:${r.roas>=2?'var(--green)':r.roas>=1?'var(--yellow)':'var(--red)'}">${fmtX(r.roas)}</span></td></tr>`).join('')
+    : '<tr class="loading-row"><td colspan="7">No data</td></tr>';
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// TIME ANALYSIS
+// ════════════════════════════════════════════════════════════════════════════
+let _timeMetric = 'clicks';
+
+async function loadTimeAnalysis() {
+  document.getElementById('tbody-hours').innerHTML = '<tr class="loading-row"><td colspan="5">Loading…</td></tr>';
+  document.getElementById('tbody-dowt').innerHTML = '<tr class="loading-row"><td colspan="5">Loading…</td></tr>';
+  try {
+    await fetchData('timeanalysis');
+    renderTimeAnalysis();
+  } catch(e) { toast(e.message, true); }
+}
+
+function switchTimeMetric(metric, btn) {
+  _timeMetric = metric;
+  document.querySelectorAll('#view-timeanalysis .metric-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTimeCharts();
+}
+
+function renderTimeAnalysis() {
+  renderTimeCharts();
+  const ta = S.data.timeAnalysis;
+  if (!ta) return;
+  const { hours=[], dow=[] } = ta;
+  const maxClicks = Math.max(...hours.map(h=>h.clicks), 1);
+
+  document.getElementById('tbody-hours').innerHTML = hours.length
+    ? hours.map(h=>`<tr><td style="font-family:monospace;font-size:11px">${h.label}</td><td class="text-right">${fmtImpr(h.impressions)}</td><td class="text-right">${fmtN(h.clicks)}</td><td class="text-right">${fmtM(h.cost)}</td><td class="text-right">${fmtN(h.conversions,1)}</td></tr>`).join('')
+    : '<tr class="loading-row"><td colspan="5">No data</td></tr>';
+
+  document.getElementById('tbody-dowt').innerHTML = dow.length
+    ? dow.map(d=>`<tr><td><strong>${d.day}</strong></td><td class="text-right">${fmtImpr(d.impressions)}</td><td class="text-right">${fmtN(d.clicks)}</td><td class="text-right">${fmtM(d.cost)}</td><td class="text-right">${fmtN(d.conversions,1)}</td></tr>`).join('')
+    : '<tr class="loading-row"><td colspan="5">No data</td></tr>';
+}
+
+function renderTimeCharts() {
+  const ta = S.data.timeAnalysis;
+  if (!ta) return;
+  const { hours=[], dow=[] } = ta;
+  const metric = _timeMetric;
+  const metricLabel = metric==='clicks'?'Clicks':metric==='cost'?'Spend':'Conv.';
+  const color = metric==='clicks'?'#5865f2':metric==='cost'?'#fbbf24':'#22d87b';
+
+  const hctx = document.getElementById('chart-hourly');
+  if (S.charts.hourly) S.charts.hourly.destroy();
+  S.charts.hourly = new Chart(hctx, {
+    type:'bar',
+    data:{ labels:hours.map(h=>h.label), datasets:[{ label:metricLabel, data:hours.map(h=>h[metric]), backgroundColor:color+'99', borderColor:color, borderWidth:1 }] },
+    options:{ responsive:true, maintainAspectRatio:false, animation:{duration:300},
+      plugins:{ legend:{display:false}, tooltip:{backgroundColor:'#1e2236',borderColor:'#2e3352',borderWidth:1,titleColor:'#dde1f5',bodyColor:'#8b90b8'} },
+      scales:{ x:{grid:{display:false},ticks:{color:'#555a7a',font:{size:9},maxRotation:0}},
+        y:{grid:{color:'#1e2236'},ticks:{color:'#555a7a',font:{size:10}}} } }
+  });
+
+  const dctx = document.getElementById('chart-dow');
+  if (S.charts.dow) S.charts.dow.destroy();
+  const dowColors = dow.map(d=>['Saturday','Sunday'].includes(d.day)?'rgba(168,85,247,0.6)':'rgba(88,101,242,0.7)');
+  S.charts.dow = new Chart(dctx, {
+    type:'bar',
+    data:{ labels:dow.map(d=>d.day.slice(0,3)), datasets:[{ label:metricLabel, data:dow.map(d=>d[metric]), backgroundColor:dowColors, borderWidth:0 }] },
+    options:{ responsive:true, maintainAspectRatio:false, animation:{duration:300},
+      plugins:{ legend:{display:false}, tooltip:{backgroundColor:'#1e2236',borderColor:'#2e3352',borderWidth:1,titleColor:'#dde1f5',bodyColor:'#8b90b8',callbacks:{title:ctx=>dow[ctx[0].dataIndex]?.day}} },
+      scales:{ x:{grid:{display:false},ticks:{color:'#555a7a',font:{size:10}}},
+        y:{grid:{color:'#1e2236'},ticks:{color:'#555a7a',font:{size:10}}} } }
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// COLUMN MANAGER
+// ════════════════════════════════════════════════════════════════════════════
+const _colState = {};   // { view: { key: bool } }
+const _customCols = {}; // { view: [{ key, label, formula, on }] }
+
+function _loadColState(view) {
+  if (!_colState[view]) {
+    try { _colState[view] = JSON.parse(localStorage.getItem('gads_cols_'+view)||'{}'); } catch{_colState[view]={};}
+  }
+  if (!_customCols[view]) {
+    try { _customCols[view] = JSON.parse(localStorage.getItem('gads_ccols_'+view)||'[]'); } catch{_customCols[view]=[];}
+  }
+}
+
+function applyColVis(view, cols) {
+  _loadColState(view);
+  const state = _colState[view];
+  const visible = cols.filter(c => c.required || state[c.key] !== false);
+  const custom = (_customCols[view]||[]).filter(c=>c.on!==false);
+  return [...visible, ...custom.map(c => ({
+    key: c.key, label: c.label, right: true,
+    render: r => { try { const fn = new Function('r', 'fmtM','fmtN','fmtP','fmtX','fmtC', `return (${c.formula});`); const v = fn(r,fmtM,fmtN,fmtP,fmtX,fmtC); return v==null?'—':typeof v==='number'?fmtN(v,2):String(v); } catch { return `<span style="color:var(--red)" title="${c.formula}">Err</span>`; } }
+  }))];
+}
+
+function toggleColManager(view) {
+  const el = document.getElementById('col-mgr-'+view);
+  if (!el) return;
+  const isOpen = el.classList.toggle('open');
+  if (isOpen) renderColManager(view, el);
+}
+
+function renderColManager(view, el) {
+  if (!el) el = document.getElementById('col-mgr-'+view);
+  if (!el) return;
+  _loadColState(view);
+  const allCols = view==='campaigns'?campaignCols():view==='adgroups'?adGroupCols():view==='ads'?adCols():view==='keywords'?keywordCols():searchTermCols();
+  const state = _colState[view];
+  const custom = _customCols[view]||[];
+  const fields = allCols.filter(c=>!c.key.startsWith('_')).map(c=>c.key);
+
+  let h = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+    <span style="font-size:12px;font-weight:600">Column Visibility</span>
+    <button class="btn btn-ghost btn-sm" onclick="resetColState('${view}')">Reset</button>
+    <span style="margin-left:auto;font-size:10px;color:var(--text3)">Required columns can't be hidden</span>
+  </div>
+  <div class="col-checks">`;
+  for (const c of allCols) {
+    const on = !c.required && state[c.key]===false ? false : true;
+    h += `<label class="col-check${c.required?' required':''}"><input type="checkbox" ${on?'checked':''} ${c.required?'disabled':''} onchange="setColVis('${view}','${c.key}',this.checked)"> ${c.label||c.key}</label>`;
+  }
+  h += '</div>';
+
+  if (custom.length) {
+    h += `<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">Custom Columns</div><div class="col-checks">`;
+    for (const c of custom) {
+      h += `<label class="col-check"><input type="checkbox" ${c.on!==false?'checked':''} onchange="setCustomOn('${view}','${c.key}',this.checked)"> ${c.label} <span style="color:var(--text3);font-size:9px;margin-left:2px">(=${c.formula})</span> <span onclick="delCustomCol('${view}','${c.key}')" style="cursor:pointer;color:var(--red);margin-left:3px;line-height:1" title="Remove">×</span></label>`;
+    }
+    h += '</div></div>';
+  }
+
+  h += `<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border)">
+    <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px">+ Add Custom Column</div>
+    <div class="cc-form">
+      <div class="cc-field"><label>Column Name</label><input class="search-input" id="cc-lbl-${view}" placeholder="e.g. CPA" style="width:110px"></div>
+      <div class="cc-field"><label>Formula (use r.field)</label><input class="search-input" id="cc-fml-${view}" placeholder="e.g. r.cost/r.conversions" style="width:210px"></div>
+      <button class="btn btn-secondary btn-sm" onclick="addCustomCol('${view}')" style="align-self:flex-end">Add</button>
+      <button class="btn btn-ghost btn-sm" onclick="aiSuggestCol('${view}')" style="align-self:flex-end" title="AI suggests formula">✦ AI</button>
+    </div>
+    <div class="cc-fields-hint">Available fields: ${fields.join(', ')}</div>
+  </div>`;
+  el.innerHTML = h;
+}
+
+function setColVis(view, key, on) {
+  _loadColState(view);
+  _colState[view][key] = on;
+  localStorage.setItem('gads_cols_'+view, JSON.stringify(_colState[view]));
+  renderView(view);
+}
+
+function setCustomOn(view, key, on) {
+  _loadColState(view);
+  const c = _customCols[view].find(c=>c.key===key);
+  if (c) { c.on = on; localStorage.setItem('gads_ccols_'+view, JSON.stringify(_customCols[view])); renderView(view); }
+}
+
+function resetColState(view) {
+  _colState[view] = {};
+  _customCols[view] = [];
+  localStorage.removeItem('gads_cols_'+view);
+  localStorage.removeItem('gads_ccols_'+view);
+  renderColManager(view);
+  renderView(view);
+}
+
+function addCustomCol(view) {
+  const label = document.getElementById('cc-lbl-'+view)?.value?.trim();
+  const formula = document.getElementById('cc-fml-'+view)?.value?.trim();
+  if (!label || !formula) { toast('Enter column name and formula', true); return; }
+  try { new Function('r','fmtM','fmtN','fmtP','fmtX','fmtC', `return (${formula});`); } catch(e) { toast('Formula syntax error: '+e.message, true); return; }
+  _loadColState(view);
+  _customCols[view].push({ key:'_cc_'+Date.now(), label, formula, on:true });
+  localStorage.setItem('gads_ccols_'+view, JSON.stringify(_customCols[view]));
+  renderColManager(view);
+  renderView(view);
+}
+
+function delCustomCol(view, key) {
+  _loadColState(view);
+  _customCols[view] = _customCols[view].filter(c=>c.key!==key);
+  localStorage.setItem('gads_ccols_'+view, JSON.stringify(_customCols[view]));
+  renderColManager(view);
+  renderView(view);
+}
+
+async function aiSuggestCol(view) {
+  const label = document.getElementById('cc-lbl-'+view)?.value?.trim();
+  if (!label) { toast('Enter a column name/description first', true); return; }
+  const allCols = view==='campaigns'?campaignCols():view==='adgroups'?adGroupCols():view==='ads'?adCols():view==='keywords'?keywordCols():searchTermCols();
+  const fields = allCols.filter(c=>!c.key.startsWith('_')).map(c=>c.key);
+  try {
+    toast('AI is suggesting a formula…');
+    const result = await apiFetch('/api/suggest-column', { method:'POST', body:{ description:label, fields } });
+    if (result.formula) {
+      const el = document.getElementById('cc-fml-'+view);
+      if (el) el.value = result.formula;
+      toast('Formula: '+result.formula);
+    }
+  } catch(e) { toast(e.message, true); }
 }
 
 // ════════════════════════════════════════════════════════════════════════════

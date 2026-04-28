@@ -67,8 +67,28 @@ const ENUMS = {
   match_type:  { 0:'UNSPECIFIED', 1:'UNKNOWN', 2:'EXACT', 3:'PHRASE', 4:'BROAD' },
   device:      { 0:'UNSPECIFIED', 1:'UNKNOWN', 2:'MOBILE', 3:'TABLET', 4:'DESKTOP', 5:'CONNECTED_TV', 6:'OTHER' },
   st_status:   { 0:'UNSPECIFIED', 1:'UNKNOWN', 2:'ADDED', 3:'EXCLUDED', 4:'ADDED_EXCLUDED', 5:'NONE' },
+  age_range:   { 503001:'18-24', 503002:'25-34', 503003:'35-44', 503004:'45-54', 503005:'55-64', 503006:'65+', 503999:'Unknown' },
+  gender:      { 10:'Male', 11:'Female', 20:'Unknown' },
+  dow:         { 2:'Monday', 3:'Tuesday', 4:'Wednesday', 5:'Thursday', 6:'Friday', 7:'Saturday', 8:'Sunday' },
+  perf_label:  { 0:'UNSPECIFIED', 1:'UNKNOWN', 2:'Pending', 3:'Learning', 4:'Low', 5:'Good', 6:'Best' },
+  asset_type:  { 1:'Text', 2:'Image', 3:'YouTube Video', 4:'Book', 5:'Lead Form', 6:'Promotion', 7:'Callout', 8:'Structured Snippet', 9:'Sitelink', 10:'Page Feed', 11:'Dynamic Education', 12:'Mobile App', 13:'Hotel Callout', 14:'Call', 15:'Price', 16:'Call To Action', 17:'Dynamic Real Estate', 18:'Dynamic Custom', 19:'Dynamic Hotels And Rentals', 20:'Dynamic Flights', 21:'Discovery Carousel Card', 22:'Dynamic Travel', 23:'Dynamic Local', 24:'Dynamic Jobs' },
 };
 const eVal = (map, v) => (v === null || v === undefined) ? v : (typeof v === 'string' ? v : (map[v] || String(v)));
+
+const GEO_NAMES = {
+  2356:'India', 2840:'United States', 2826:'United Kingdom', 2036:'Australia', 2124:'Canada',
+  2276:'Germany', 2250:'France', 2380:'Italy', 2724:'Spain', 2392:'Japan', 2410:'South Korea',
+  2076:'Brazil', 2484:'Mexico', 2528:'Netherlands', 2756:'Switzerland', 2752:'Sweden',
+  2578:'Norway', 2208:'Denmark', 2246:'Finland', 2040:'Austria', 2056:'Belgium',
+  2620:'Portugal', 2616:'Poland', 2203:'Czech Republic', 2348:'Hungary', 2642:'Romania',
+  2300:'Greece', 2792:'Turkey', 2818:'Egypt', 2710:'South Africa', 2566:'Nigeria',
+  2404:'Kenya', 2504:'Morocco', 2682:'Saudi Arabia', 2784:'United Arab Emirates',
+  2400:'Jordan', 2376:'Israel', 2702:'Singapore', 2764:'Thailand', 2360:'Indonesia',
+  2458:'Malaysia', 2608:'Philippines', 2704:'Vietnam', 2586:'Pakistan', 2050:'Bangladesh',
+  2144:'Sri Lanka', 2554:'New Zealand', 2032:'Argentina', 2152:'Chile', 2170:'Colombia',
+  2604:'Peru', 2858:'Uruguay', 2032:'Argentina', 2076:'Brazil', 2344:'Hong Kong',
+  2158:'Taiwan', 2643:'Russia', 2804:'Ukraine', 2703:'Slovakia', 2616:'Poland',
+};
 
 function dateRange(start, end) {
   const s = new Date(start), e = new Date(end);
@@ -198,6 +218,80 @@ function demoDevices(scale = 1) {
     { device: 'MOBILE', impressions: Math.round(432000 * scale), clicks: Math.round(9860 * scale), cost: 8240 * scale, conversions: 248 * scale, conversions_value: 12400 * scale },
     { device: 'DESKTOP', impressions: Math.round(258000 * scale), clicks: Math.round(7420 * scale), cost: 6980 * scale, conversions: 312 * scale, conversions_value: 15600 * scale },
     { device: 'TABLET', impressions: Math.round(48000 * scale), clicks: Math.round(860 * scale), cost: 620 * scale, conversions: 18 * scale, conversions_value: 900 * scale },
+  ];
+}
+
+function demoGeo() {
+  return [
+    { country:'India',          criterion_id:2356, impressions:52000, clicks:1820, cost:4280, conversions:87, conversions_value:4350, ctr:0.035, avg_cpc:2.35, roas:1.02, conversion_rate:0.048 },
+    { country:'United States',  criterion_id:2840, impressions:28400, clicks:1240, cost:5920, conversions:142,conversions_value:14200,ctr:0.0437,avg_cpc:4.77,roas:2.40, conversion_rate:0.115 },
+    { country:'United Kingdom', criterion_id:2826, impressions:18200, clicks:728,  cost:3280, conversions:68, conversions_value:6800, ctr:0.04,  avg_cpc:4.51,roas:2.07, conversion_rate:0.093 },
+    { country:'Australia',      criterion_id:2036, impressions:12400, clicks:496,  cost:2480, conversions:48, conversions_value:4800, ctr:0.04,  avg_cpc:5.0, roas:1.94, conversion_rate:0.097 },
+    { country:'Canada',         criterion_id:2124, impressions:9200,  clicks:368,  cost:1840, conversions:36, conversions_value:3600, ctr:0.04,  avg_cpc:5.0, roas:1.96, conversion_rate:0.098 },
+    { country:'Germany',        criterion_id:2276, impressions:8400,  clicks:336,  cost:1680, conversions:28, conversions_value:2800, ctr:0.04,  avg_cpc:5.0, roas:1.67, conversion_rate:0.083 },
+    { country:'Singapore',      criterion_id:2702, impressions:5400,  clicks:216,  cost:1080, conversions:22, conversions_value:2200, ctr:0.04,  avg_cpc:5.0, roas:2.04, conversion_rate:0.102 },
+    { country:'UAE',            criterion_id:2784, impressions:4800,  clicks:192,  cost:960,  conversions:18, conversions_value:1800, ctr:0.04,  avg_cpc:5.0, roas:1.88, conversion_rate:0.094 },
+    { country:'France',         criterion_id:2250, impressions:7200,  clicks:288,  cost:1440, conversions:24, conversions_value:2400, ctr:0.04,  avg_cpc:5.0, roas:1.67, conversion_rate:0.083 },
+    { country:'South Africa',   criterion_id:2710, impressions:3600,  clicks:144,  cost:360,  conversions:8,  conversions_value:800,  ctr:0.04,  avg_cpc:2.5, roas:2.22, conversion_rate:0.056 },
+  ];
+}
+
+function demoDemographics() {
+  return {
+    age: [
+      { age:'18-24', impressions:84200,  clicks:2948,  cost:2654,  conversions:48,  conversions_value:2400,  ctr:0.035, avg_cpc:0.9,  roas:0.90, conversion_rate:0.016 },
+      { age:'25-34', impressions:142000, clicks:5680,  cost:6816,  conversions:186, conversions_value:11160, ctr:0.04,  avg_cpc:1.2,  roas:1.64, conversion_rate:0.033 },
+      { age:'35-44', impressions:168000, clicks:7392,  cost:10349, conversions:312, conversions_value:18720, ctr:0.044, avg_cpc:1.4,  roas:1.81, conversion_rate:0.042 },
+      { age:'45-54', impressions:124000, clicks:5952,  cost:9523,  conversions:284, conversions_value:17040, ctr:0.048, avg_cpc:1.6,  roas:1.79, conversion_rate:0.048 },
+      { age:'55-64', impressions:86000,  clicks:4472,  cost:7155,  conversions:196, conversions_value:11760, ctr:0.052, avg_cpc:1.6,  roas:1.64, conversion_rate:0.044 },
+      { age:'65+',   impressions:42000,  clicks:2226,  cost:3562,  conversions:86,  conversions_value:5160,  ctr:0.053, avg_cpc:1.6,  roas:1.45, conversion_rate:0.039 },
+    ],
+    gender: [
+      { gender:'Male',    impressions:420000, clicks:18900, cost:28350, conversions:758, conversions_value:45480, ctr:0.045, avg_cpc:1.5, roas:1.60, conversion_rate:0.040 },
+      { gender:'Female',  impressions:312000, clicks:15600, cost:21840, conversions:642, conversions_value:38520, ctr:0.050, avg_cpc:1.4, roas:1.76, conversion_rate:0.041 },
+      { gender:'Unknown', impressions:124000, clicks:4960,  cost:4960,  conversions:112, conversions_value:5600,  ctr:0.040, avg_cpc:1.0, roas:1.13, conversion_rate:0.023 },
+    ]
+  };
+}
+
+function demoTimeAnalysis() {
+  const hours = Array.from({length:24}, (_, i) => {
+    const factor = [0,1,2,3,4,5].includes(i) ? 0.05 : [9,10,11,14,15,16,20,21].includes(i) ? 1.8 : 1;
+    const clicks = Math.round(280 * factor * (0.8 + Math.random()*0.4));
+    const impressions = Math.round(clicks * (22 + Math.random()*6));
+    const cost = parseFloat((clicks * 1.1 * (0.8 + Math.random()*0.4)).toFixed(2));
+    const conversions = parseFloat((clicks * 0.038 * (factor > 1 ? 1.2 : 1)).toFixed(1));
+    const label = i===0?'12am':i<12?`${i}am`:i===12?'12pm':`${i-12}pm`;
+    return { hour:i, label, impressions, clicks, cost, conversions };
+  });
+  const dayFactors = { Monday:1.1, Tuesday:1.2, Wednesday:1.15, Thursday:1.2, Friday:1.1, Saturday:0.7, Sunday:0.55 };
+  const dow = Object.entries(dayFactors).map(([day, f]) => ({
+    day, impressions:Math.round(84000*f), clicks:Math.round(3360*f),
+    cost:parseFloat((4200*f).toFixed(2)), conversions:parseFloat((128*f).toFixed(1))
+  }));
+  return { hours, dow };
+}
+
+function demoAuctions() {
+  return [
+    { domain:'(Your account)',  impression_share:0.51, overlap_rate:1.00, position_above_rate:0.00, top_is:0.68, abs_top_is:0.24, outranking_share:0.52 },
+    { domain:'competitor-a.com',impression_share:0.72, overlap_rate:0.64, position_above_rate:0.38, top_is:0.81, abs_top_is:0.35, outranking_share:0.26 },
+    { domain:'competitor-b.com',impression_share:0.48, overlap_rate:0.52, position_above_rate:0.29, top_is:0.59, abs_top_is:0.18, outranking_share:0.38 },
+    { domain:'competitor-c.com',impression_share:0.38, overlap_rate:0.41, position_above_rate:0.22, top_is:0.45, abs_top_is:0.14, outranking_share:0.44 },
+    { domain:'competitor-d.com',impression_share:0.31, overlap_rate:0.35, position_above_rate:0.18, top_is:0.38, abs_top_is:0.11, outranking_share:0.48 },
+  ];
+}
+
+function demoAssets() {
+  return [
+    { id:'a001', name:'Official Brand Store', field_type:'Headline',   perf:'BEST',    text:'Official [Brand] Store', campaign:'Brand – Exact Match', impressions:18200, clicks:2060, cost:1180, conversions:94,  ctr:0.113, avg_cpc:0.573 },
+    { id:'a002', name:'Free Shipping Offer',  field_type:'Headline',   perf:'GOOD',    text:'Free Shipping on Orders Over 50', campaign:'Brand – Exact Match', impressions:15400, clicks:1694, cost:972, conversions:78, ctr:0.11, avg_cpc:0.574 },
+    { id:'a003', name:'Best Prices Headline', field_type:'Headline',   perf:'LOW',     text:'Best Prices Guaranteed', campaign:'Non-Brand – Head Terms', impressions:42000, clicks:1260, cost:1386, conversions:18, ctr:0.03, avg_cpc:1.1 },
+    { id:'a004', name:'Shop Now Description', field_type:'Description',perf:'GOOD',    text:'Get the best deals on all products. Free shipping on orders over 50. Shop now!', campaign:'Brand – Exact Match', impressions:18200, clicks:2060, cost:1180, conversions:94, ctr:0.113, avg_cpc:0.573 },
+    { id:'a005', name:'Shop Now Sitelink',    field_type:'Sitelink',   perf:'GOOD',    text:'Shop Now', campaign:'Brand – Exact Match', impressions:12000, clicks:840, cost:420, conversions:38, ctr:0.07, avg_cpc:0.5 },
+    { id:'a006', name:'About Us Sitelink',    field_type:'Sitelink',   perf:'LOW',     text:'About Us', campaign:'Brand – Exact Match', impressions:12000, clicks:240, cost:120, conversions:4, ctr:0.02, avg_cpc:0.5 },
+    { id:'a007', name:'24/7 Support Callout', field_type:'Callout',    perf:'PENDING', text:'24/7 Customer Support', campaign:'All Campaigns', impressions:28400, clicks:994, cost:496, conversions:28, ctr:0.035, avg_cpc:0.499 },
+    { id:'a008', name:'Product Hero Image',   field_type:'Display Image',perf:'GOOD',  text:'', campaign:'Display – Remarketing', impressions:520000, clicks:1820, cost:720, conversions:28, ctr:0.0035, avg_cpc:0.396 },
   ];
 }
 
@@ -407,6 +501,11 @@ app.get('/api/demo', (req, res) => {
     keywords: demoKeywords(scale),
     searchTerms: demoSearchTerms(scale),
     devices: demoDevices(scale),
+    geo: demoGeo(),
+    demographics: demoDemographics(),
+    timeAnalysis: demoTimeAnalysis(),
+    auctionInsights: demoAuctions(),
+    assets: demoAssets(),
   });
 });
 
@@ -564,6 +663,156 @@ app.get('/api/devices', requireAuth, async (req, res) => {
     const customer = getCustomer(req.session.tokens.refresh_token, customerId);
     const rows = await customer.query(`SELECT segments.device,metrics.impressions,metrics.clicks,metrics.cost_micros,metrics.conversions,metrics.conversions_value FROM customer WHERE segments.date BETWEEN '${startDate}' AND '${endDate}'`);
     res.json({ devices: rows.map(r => ({ device: eVal(ENUMS.device, r.segments.device), impressions: r.metrics.impressions || 0, clicks: r.metrics.clicks || 0, cost: m2c(r.metrics.cost_micros), conversions: r.metrics.conversions || 0, conversions_value: r.metrics.conversions_value || 0 })) });
+  } catch (e) { res.status(500).json({ error: apiError(e) }); }
+});
+
+// ─── Advanced Data Routes ────────────────────────────────────────────────────
+
+app.get('/api/geo', requireAuth, async (req, res) => {
+  const { startDate, endDate } = req.query;
+  const customerId = req.query.customerId || req.session.customerId;
+  if (!customerId) return res.status(400).json({ error: 'No customer ID set' });
+  try {
+    const { GoogleAdsApi } = await import('google-ads-api');
+    globalThis._gadsApi = { GoogleAdsApi };
+    const customer = getCustomer(req.session.tokens.refresh_token, customerId);
+    const rows = await customer.query(`SELECT geographic_view.country_criterion_id,geographic_view.location_type,metrics.impressions,metrics.clicks,metrics.cost_micros,metrics.conversions,metrics.conversions_value,metrics.ctr,metrics.average_cpc,metrics.conversions_from_interactions_rate FROM geographic_view WHERE segments.date BETWEEN '${startDate}' AND '${endDate}' ORDER BY metrics.cost_micros DESC LIMIT 100`);
+    res.json({ geo: rows.map(r => {
+      const m = r.metrics || {}, id = r.geographic_view?.country_criterion_id;
+      return { criterion_id: id, country: GEO_NAMES[id] || `Region ${id}`, location_type: r.geographic_view?.location_type,
+        impressions: m.impressions||0, clicks: m.clicks||0, cost: m2c(m.cost_micros),
+        conversions: m.conversions||0, conversions_value: m.conversions_value||0, ctr: m.ctr||0,
+        avg_cpc: m2c(m.average_cpc), roas: m.cost_micros>0 ? m.conversions_value/m2c(m.cost_micros) : 0,
+        conversion_rate: m.conversions_from_interactions_rate||0 };
+    }) });
+  } catch (e) { res.status(500).json({ error: apiError(e) }); }
+});
+
+app.get('/api/demographics', requireAuth, async (req, res) => {
+  const { startDate, endDate } = req.query;
+  const customerId = req.query.customerId || req.session.customerId;
+  if (!customerId) return res.status(400).json({ error: 'No customer ID set' });
+  try {
+    const { GoogleAdsApi } = await import('google-ads-api');
+    globalThis._gadsApi = { GoogleAdsApi };
+    const customer = getCustomer(req.session.tokens.refresh_token, customerId);
+    const [ageRows, genderRows] = await Promise.all([
+      customer.query(`SELECT ad_group_criterion.age_range.type,metrics.impressions,metrics.clicks,metrics.cost_micros,metrics.conversions,metrics.conversions_value,metrics.ctr,metrics.average_cpc,metrics.conversions_from_interactions_rate FROM age_range_view WHERE segments.date BETWEEN '${startDate}' AND '${endDate}'`),
+      customer.query(`SELECT ad_group_criterion.gender.type,metrics.impressions,metrics.clicks,metrics.cost_micros,metrics.conversions,metrics.conversions_value,metrics.ctr,metrics.average_cpc,metrics.conversions_from_interactions_rate FROM gender_view WHERE segments.date BETWEEN '${startDate}' AND '${endDate}'`),
+    ]);
+    const agg = (rows, keyFn, nameProp) => {
+      const map = {};
+      for (const r of rows) {
+        const m = r.metrics||{}, k = keyFn(r);
+        if (!map[k]) map[k] = { [nameProp]:k, impressions:0, clicks:0, cost:0, conversions:0, conversions_value:0 };
+        const a = map[k]; a.impressions+=m.impressions||0; a.clicks+=m.clicks||0;
+        a.cost+=m2c(m.cost_micros); a.conversions+=m.conversions||0; a.conversions_value+=m.conversions_value||0;
+      }
+      return Object.values(map).map(a => ({ ...a, ctr: a.impressions>0?a.clicks/a.impressions:0,
+        avg_cpc: a.clicks>0?a.cost/a.clicks:0, roas: a.cost>0?a.conversions_value/a.cost:0,
+        conversion_rate: a.clicks>0?a.conversions/a.clicks:0 }));
+    };
+    res.json({
+      age: agg(ageRows, r => eVal(ENUMS.age_range, r.ad_group_criterion?.age_range?.type), 'age'),
+      gender: agg(genderRows, r => eVal(ENUMS.gender, r.ad_group_criterion?.gender?.type), 'gender'),
+    });
+  } catch (e) { res.status(500).json({ error: apiError(e) }); }
+});
+
+app.get('/api/time-analysis', requireAuth, async (req, res) => {
+  const { startDate, endDate } = req.query;
+  const customerId = req.query.customerId || req.session.customerId;
+  if (!customerId) return res.status(400).json({ error: 'No customer ID set' });
+  try {
+    const { GoogleAdsApi } = await import('google-ads-api');
+    globalThis._gadsApi = { GoogleAdsApi };
+    const customer = getCustomer(req.session.tokens.refresh_token, customerId);
+    const [hourRows, dowRows] = await Promise.all([
+      customer.query(`SELECT segments.hour,metrics.impressions,metrics.clicks,metrics.cost_micros,metrics.conversions FROM customer WHERE segments.date BETWEEN '${startDate}' AND '${endDate}'`),
+      customer.query(`SELECT segments.day_of_week,metrics.impressions,metrics.clicks,metrics.cost_micros,metrics.conversions FROM customer WHERE segments.date BETWEEN '${startDate}' AND '${endDate}'`),
+    ]);
+    const hmap = {};
+    for (const r of hourRows) {
+      const m=r.metrics||{}, h=r.segments?.hour??0;
+      if (!hmap[h]) hmap[h]={ hour:h, impressions:0, clicks:0, cost:0, conversions:0 };
+      const a=hmap[h]; a.impressions+=m.impressions||0; a.clicks+=m.clicks||0; a.cost+=m2c(m.cost_micros); a.conversions+=m.conversions||0;
+    }
+    const hours = Array.from({length:24},(_,i)=>{ const h=hmap[i]||{hour:i,impressions:0,clicks:0,cost:0,conversions:0}; const label=i===0?'12am':i<12?`${i}am`:i===12?'12pm':`${i-12}pm`; return {...h,label}; });
+    const dmap = {};
+    for (const r of dowRows) {
+      const m=r.metrics||{}, k=eVal(ENUMS.dow, r.segments?.day_of_week);
+      if (!dmap[k]) dmap[k]={ day:k, impressions:0, clicks:0, cost:0, conversions:0 };
+      const a=dmap[k]; a.impressions+=m.impressions||0; a.clicks+=m.clicks||0; a.cost+=m2c(m.cost_micros); a.conversions+=m.conversions||0;
+    }
+    const dayOrder=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+    const dow=dayOrder.map(d=>dmap[d]||{day:d,impressions:0,clicks:0,cost:0,conversions:0});
+    res.json({ hours, dow });
+  } catch (e) { res.status(500).json({ error: apiError(e) }); }
+});
+
+app.get('/api/assets', requireAuth, async (req, res) => {
+  const { startDate, endDate } = req.query;
+  const customerId = req.query.customerId || req.session.customerId;
+  if (!customerId) return res.status(400).json({ error: 'No customer ID set' });
+  try {
+    const { GoogleAdsApi } = await import('google-ads-api');
+    globalThis._gadsApi = { GoogleAdsApi };
+    const customer = getCustomer(req.session.tokens.refresh_token, customerId);
+    const rows = await customer.query(`SELECT asset.id,asset.name,asset.type,asset.text_asset.text,ad_group_ad_asset_view.field_type,ad_group_ad_asset_view.performance_label,metrics.impressions,metrics.clicks,metrics.cost_micros,metrics.conversions,metrics.ctr FROM ad_group_ad_asset_view WHERE segments.date BETWEEN '${startDate}' AND '${endDate}' ORDER BY metrics.impressions DESC LIMIT 200`);
+    res.json({ assets: rows.map(r => {
+      const m=r.metrics||{}, a=r.asset||{}, v=r.ad_group_ad_asset_view||{};
+      return { id:a.id, name:a.name||'', type:eVal(ENUMS.asset_type,a.type), text:a.text_asset?.text||'',
+        field_type:v.field_type, perf:eVal(ENUMS.perf_label,v.performance_label),
+        impressions:m.impressions||0, clicks:m.clicks||0, ctr:m.ctr||0,
+        cost:m2c(m.cost_micros), conversions:m.conversions||0,
+        avg_cpc:m.clicks>0?m2c(m.cost_micros)/m.clicks:0 };
+    }) });
+  } catch (e) { res.status(500).json({ error: apiError(e) }); }
+});
+
+app.get('/api/auction-insights', requireAuth, async (req, res) => {
+  const { startDate, endDate } = req.query;
+  const customerId = req.query.customerId || req.session.customerId;
+  if (!customerId) return res.status(400).json({ error: 'No customer ID set' });
+  try {
+    const { GoogleAdsApi } = await import('google-ads-api');
+    globalThis._gadsApi = { GoogleAdsApi };
+    const customer = getCustomer(req.session.tokens.refresh_token, customerId);
+    const rows = await customer.query(`SELECT auction_insight.domain,metrics.auction_insight_search_impression_share,metrics.auction_insight_search_overlap_rate,metrics.auction_insight_search_position_above_rate,metrics.auction_insight_search_top_impression_share,metrics.auction_insight_search_absolute_top_impression_share,metrics.auction_insight_search_outranking_share FROM campaign WHERE segments.date BETWEEN '${startDate}' AND '${endDate}' AND campaign.status != 'REMOVED' ORDER BY metrics.auction_insight_search_impression_share DESC LIMIT 50`);
+    const dmap = {};
+    for (const r of rows) {
+      const m=r.metrics||{}, d=r.auction_insight?.domain||'Unknown';
+      if (!dmap[d]) dmap[d]={ domain:d, impression_share:0, overlap_rate:0, position_above_rate:0, top_is:0, abs_top_is:0, outranking_share:0, _n:0 };
+      const a=dmap[d]; a._n++;
+      a.impression_share+=m.auction_insight_search_impression_share||0;
+      a.overlap_rate+=m.auction_insight_search_overlap_rate||0;
+      a.position_above_rate+=m.auction_insight_search_position_above_rate||0;
+      a.top_is+=m.auction_insight_search_top_impression_share||0;
+      a.abs_top_is+=m.auction_insight_search_absolute_top_impression_share||0;
+      a.outranking_share+=m.auction_insight_search_outranking_share||0;
+    }
+    const auctionInsights=Object.values(dmap).map(d=>({ domain:d.domain,
+      impression_share:d.impression_share/d._n, overlap_rate:d.overlap_rate/d._n,
+      position_above_rate:d.position_above_rate/d._n, top_is:d.top_is/d._n,
+      abs_top_is:d.abs_top_is/d._n, outranking_share:d.outranking_share/d._n }))
+      .sort((a,b)=>b.impression_share-a.impression_share).slice(0,10);
+    res.json({ auctionInsights });
+  } catch (e) { res.status(500).json({ error: apiError(e) }); }
+});
+
+// ─── AI Column Suggestion ─────────────────────────────────────────────────────
+
+app.post('/api/suggest-column', async (req, res) => {
+  if (!process.env.ANTHROPIC_API_KEY) return res.status(400).json({ error: 'Anthropic API key not configured.' });
+  const { description, fields = [] } = req.body;
+  try {
+    const Anthropic = (await import('@anthropic-ai/sdk')).default;
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const msg = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001', max_tokens: 200,
+      messages: [{ role: 'user', content: `Given these Google Ads row fields: ${fields.join(', ')}\n\nWrite a concise JavaScript formula to compute: "${description}"\n\nReturn ONLY the formula (e.g. r.cost/r.conversions). Use r.field to access values. No explanation, no markdown.` }],
+    });
+    res.json({ formula: msg.content[0].text.trim().replace(/^`+|`+$/g,'') });
   } catch (e) { res.status(500).json({ error: apiError(e) }); }
 });
 
