@@ -1,5 +1,5 @@
 import express from 'express';
-import session from 'express-session';
+import cookieSession from 'cookie-session';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -10,17 +10,27 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Cookie-session stores all data client-side — works on Vercel (stateless/serverless)
 app.use(express.json({ limit: '10mb' }));
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'gads-dash-secret-change-me',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { maxAge: 86400000, httpOnly: true, sameSite: 'lax' },
+app.use(cookieSession({
+  name: 'gads',
+  keys: [process.env.SESSION_SECRET || 'gads-dash-secret-change-me'],
+  maxAge: 24 * 60 * 60 * 1000,
+  sameSite: 'lax',
+  secure: process.env.NODE_ENV === 'production',
 }));
 app.use(express.static(__dirname));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'Google Ads.html')));
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+
+// Returns the correct OAuth redirect URI for local dev or Vercel production
+function getRedirectUri(req) {
+  if (process.env.GOOGLE_REDIRECT_URI) return process.env.GOOGLE_REDIRECT_URI;
+  const proto = req.headers['x-forwarded-proto'] || 'http';
+  const host = req.headers['x-forwarded-host'] || req.headers.host || `localhost:${PORT}`;
+  return `${proto}://${host}/api/auth/callback`;
+}
 
 const m2c = (micros) => (micros || 0) / 1_000_000;
 const pct = (a, b) => (b && b !== 0) ? ((a - b) / b) * 100 : 0;
@@ -190,7 +200,7 @@ app.get('/api/auth/url', async (req, res) => {
     const oauth2 = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
-      `http://localhost:${PORT}/api/auth/callback`
+      getRedirectUri(req)
     );
     const url = oauth2.generateAuthUrl({
       access_type: 'offline',
@@ -207,7 +217,7 @@ app.get('/api/auth/callback', async (req, res) => {
     const oauth2 = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
-      `http://localhost:${PORT}/api/auth/callback`
+      getRedirectUri(req)
     );
     const { tokens } = await oauth2.getToken(req.query.code);
     req.session.tokens = tokens;
@@ -243,7 +253,8 @@ app.get('/api/auth/status', (req, res) => {
 });
 
 app.post('/api/auth/logout', (req, res) => {
-  req.session.destroy(() => res.json({ success: true }));
+  req.session = null; // cookie-session: setting to null clears the cookie
+  res.json({ success: true });
 });
 
 app.post('/api/auth/customer', requireAuth, (req, res) => {
@@ -508,11 +519,16 @@ Rules:
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.listen(PORT, () => {
-  console.log(`\n  Google Ads AI Dashboard`);
-  console.log(`  ─────────────────────────────────`);
-  console.log(`  Local:   http://localhost:${PORT}`);
-  console.log(`  Mode:    ${process.env.GOOGLE_CLIENT_ID ? 'Live (Google Ads API)' : 'Demo'}`);
-  console.log(`  AI:      ${process.env.ANTHROPIC_API_KEY ? 'Claude AI enabled' : 'No API key (demo insights only)'}`);
-  console.log(`  ─────────────────────────────────\n`);
-});
+// On Vercel the server is exported as a handler; locally it listens on a port
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`\n  Google Ads AI Dashboard`);
+    console.log(`  ─────────────────────────────────`);
+    console.log(`  Local:   http://localhost:${PORT}`);
+    console.log(`  Mode:    ${process.env.GOOGLE_CLIENT_ID ? 'Live (Google Ads API)' : 'Demo'}`);
+    console.log(`  AI:      ${process.env.ANTHROPIC_API_KEY ? 'Claude AI enabled' : 'No API key (demo insights only)'}`);
+    console.log(`  ─────────────────────────────────\n`);
+  });
+}
+
+export default app;
