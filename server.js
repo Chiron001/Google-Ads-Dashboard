@@ -36,6 +36,25 @@ function getRedirectUri(req) {
   return `${proto}://${host}/api/auth/callback`;
 }
 
+// Extracts a human-readable message from google-ads-api / gRPC errors
+function apiError(e) {
+  try {
+    // google-ads-api wraps gRPC errors; the real message is often in e.errors[].message
+    if (e.errors && Array.isArray(e.errors)) {
+      const msgs = e.errors.map(err => err.message || JSON.stringify(err)).filter(Boolean);
+      if (msgs.length) return msgs.join(' | ');
+    }
+    // Some versions surface it as e.response.data.error or e.response.errors
+    if (e.response?.data?.error) return e.response.data.error;
+    // gRPC errors have a `details` array
+    if (e.details && Array.isArray(e.details)) {
+      const msgs = e.details.map(d => d.message || JSON.stringify(d)).filter(Boolean);
+      if (msgs.length) return msgs.join(' | ');
+    }
+  } catch (_) { /* ignore extraction errors */ }
+  return e.message || String(e);
+}
+
 const m2c = (micros) => (micros || 0) / 1_000_000;
 const pct = (a, b) => (b && b !== 0) ? ((a - b) / b) * 100 : 0;
 const fmtDate = (d) => d.toISOString().split('T')[0];
@@ -212,7 +231,7 @@ app.get('/api/auth/url', async (req, res) => {
       prompt: 'consent',
     });
     res.json({ url });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { res.status(500).json({ error: apiError(e) }); }
 });
 
 app.get('/api/auth/callback', async (req, res) => {
@@ -282,6 +301,70 @@ app.post('/api/auth/customer', requireAuth, (req, res) => {
   res.json({ success: true });
 });
 
+// Diagnostic endpoint — step-by-step API connection test
+app.get('/api/test-api', requireAuth, async (req, res) => {
+  const steps = [];
+  const ok = (label, data = {}) => steps.push({ label, ok: true, ...data });
+  const fail = (label, error) => steps.push({ label, ok: false, error });
+
+  // 1 – import package
+  let GoogleAdsApi;
+  try {
+    ({ GoogleAdsApi } = await import('google-ads-api'));
+    ok('Import google-ads-api');
+  } catch (e) {
+    fail('Import google-ads-api', apiError(e));
+    return res.json({ steps, passed: false });
+  }
+
+  // 2 – construct client
+  let client;
+  try {
+    client = new GoogleAdsApi({
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      client_secret: process.env.GOOGLE_CLIENT_SECRET,
+      developer_token: process.env.GOOGLE_DEVELOPER_TOKEN,
+    });
+    ok('Construct GoogleAdsApi client');
+  } catch (e) {
+    fail('Construct GoogleAdsApi client', apiError(e));
+    return res.json({ steps, passed: false });
+  }
+
+  // 3 – list accessible customers
+  let customerIds = [];
+  try {
+    const result = await client.listAccessibleCustomers(req.session.tokens.refresh_token);
+    customerIds = (result.resource_names || []).map(r => r.replace('customers/', ''));
+    ok('listAccessibleCustomers', { customerIds });
+  } catch (e) {
+    fail('listAccessibleCustomers', apiError(e));
+    return res.json({ steps, passed: false });
+  }
+
+  // 4 – try a simple query on the configured customer ID
+  const customerId = req.query.customerId || req.session.customerId || process.env.GOOGLE_CUSTOMER_ID;
+  if (!customerId) {
+    fail('Query customer', 'No GOOGLE_CUSTOMER_ID configured');
+    return res.json({ steps, passed: false });
+  }
+  try {
+    const cfg = { customer_id: customerId, refresh_token: req.session.tokens.refresh_token };
+    if (process.env.GOOGLE_LOGIN_CUSTOMER_ID) cfg.login_customer_id = process.env.GOOGLE_LOGIN_CUSTOMER_ID;
+    const customer = client.Customer(cfg);
+    const rows = await customer.query(
+      `SELECT customer.id, customer.descriptive_name, customer.currency_code FROM customer LIMIT 1`
+    );
+    const info = rows[0]?.customer || {};
+    ok('Query customer resource', { id: info.id, name: info.descriptive_name, currency: info.currency_code });
+  } catch (e) {
+    fail('Query customer resource', apiError(e));
+    return res.json({ steps, passed: false });
+  }
+
+  return res.json({ steps, passed: true });
+});
+
 // ─── Account Routes ───────────────────────────────────────────────────────────
 
 app.get('/api/accounts', requireAuth, async (req, res) => {
@@ -295,7 +378,7 @@ app.get('/api/accounts', requireAuth, async (req, res) => {
     const result = await client.listAccessibleCustomers(req.session.tokens.refresh_token);
     const ids = (result.resource_names || []).map(r => r.replace('customers/', ''));
     res.json({ accounts: ids });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { res.status(500).json({ error: apiError(e) }); }
 });
 
 // ─── Demo Data Route ──────────────────────────────────────────────────────────
@@ -346,7 +429,7 @@ app.get('/api/overview', requireAuth, async (req, res) => {
         roas: pct(m.conversions_value / (m.cost_micros || 1), pm.conversions_value / (pm.cost_micros || 1)),
       },
     });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { res.status(500).json({ error: apiError(e) }); }
 });
 
 app.get('/api/timeseries', requireAuth, async (req, res) => {
@@ -359,7 +442,7 @@ app.get('/api/timeseries', requireAuth, async (req, res) => {
     const customer = getCustomer(req.session.tokens.refresh_token, customerId);
     const rows = await customer.query(`SELECT segments.date,metrics.impressions,metrics.clicks,metrics.cost_micros,metrics.conversions,metrics.conversions_value,metrics.ctr,metrics.average_cpc FROM customer WHERE segments.date BETWEEN '${startDate}' AND '${endDate}' ORDER BY segments.date ASC`);
     res.json({ data: rows.map(r => ({ date: r.segments.date, impressions: r.metrics.impressions || 0, clicks: r.metrics.clicks || 0, cost: m2c(r.metrics.cost_micros), conversions: r.metrics.conversions || 0, conversions_value: r.metrics.conversions_value || 0, ctr: r.metrics.ctr || 0, avg_cpc: m2c(r.metrics.average_cpc) })) });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { res.status(500).json({ error: apiError(e) }); }
 });
 
 app.get('/api/campaigns', requireAuth, async (req, res) => {
@@ -377,7 +460,7 @@ app.get('/api/campaigns', requireAuth, async (req, res) => {
         return { id: c.id, name: c.name, status: c.status, channel: c.advertising_channel_type, bidding: c.bidding_strategy_type, target_cpa: c.target_cpa?.target_cpa_micros ? m2c(c.target_cpa.target_cpa_micros) : null, target_roas: c.target_roas?.target_roas || null, impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversions_value: m.conversions_value || 0, conversion_rate: m.conversion_rate || 0, roas: m.cost_micros > 0 ? m.conversions_value / m2c(m.cost_micros) : 0, impression_share: m.search_impression_share || 0, lost_is_budget: m.search_budget_lost_impression_share || 0, lost_is_rank: m.search_rank_lost_impression_share || 0 };
       })
     });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { res.status(500).json({ error: apiError(e) }); }
 });
 
 app.get('/api/adgroups', requireAuth, async (req, res) => {
@@ -397,7 +480,7 @@ app.get('/api/adgroups', requireAuth, async (req, res) => {
         return { campaign_id: r.campaign.id, campaign_name: r.campaign.name, id: r.ad_group.id, name: r.ad_group.name, status: r.ad_group.status, type: r.ad_group.type, impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversions_value: m.conversions_value || 0, conversion_rate: m.conversion_rate || 0, roas: m.cost_micros > 0 ? m.conversions_value / m2c(m.cost_micros) : 0 };
       })
     });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { res.status(500).json({ error: apiError(e) }); }
 });
 
 app.get('/api/ads', requireAuth, async (req, res) => {
@@ -420,7 +503,7 @@ app.get('/api/ads', requireAuth, async (req, res) => {
         return { campaign_name: r.campaign.name, ad_group_name: r.ad_group.name, id: ad.id, name: ad.name || headlines || `Ad ${ad.id}`, type: r.ad_group_ad.status ? ad.type : 'UNKNOWN', status: r.ad_group_ad.status, final_url: ad.final_urls?.[0] || '', headlines, descriptions, impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversions_value: m.conversions_value || 0, conversion_rate: m.conversion_rate || 0, roas: m.cost_micros > 0 ? m.conversions_value / m2c(m.cost_micros) : 0 };
       })
     });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { res.status(500).json({ error: apiError(e) }); }
 });
 
 app.get('/api/keywords', requireAuth, async (req, res) => {
@@ -438,7 +521,7 @@ app.get('/api/keywords', requireAuth, async (req, res) => {
         return { campaign_name: r.campaign.name, ad_group_name: r.ad_group.name, keyword: kw.keyword?.text, match_type: kw.keyword?.match_type, status: kw.status, quality_score: kw.quality_info?.quality_score || null, impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversion_rate: m.conversion_rate || 0, impression_share: m.search_impression_share || 0 };
       })
     });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { res.status(500).json({ error: apiError(e) }); }
 });
 
 app.get('/api/search-terms', requireAuth, async (req, res) => {
@@ -456,7 +539,7 @@ app.get('/api/search-terms', requireAuth, async (req, res) => {
         return { campaign_name: r.campaign.name, ad_group_name: r.ad_group.name, search_term: r.search_term_view.search_term, status: r.search_term_view.status, impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversion_rate: m.conversion_rate || 0 };
       })
     });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { res.status(500).json({ error: apiError(e) }); }
 });
 
 app.get('/api/devices', requireAuth, async (req, res) => {
@@ -469,7 +552,7 @@ app.get('/api/devices', requireAuth, async (req, res) => {
     const customer = getCustomer(req.session.tokens.refresh_token, customerId);
     const rows = await customer.query(`SELECT segments.device,metrics.impressions,metrics.clicks,metrics.cost_micros,metrics.conversions,metrics.conversions_value FROM customer WHERE segments.date BETWEEN '${startDate}' AND '${endDate}'`);
     res.json({ devices: rows.map(r => ({ device: r.segments.device, impressions: r.metrics.impressions || 0, clicks: r.metrics.clicks || 0, cost: m2c(r.metrics.cost_micros), conversions: r.metrics.conversions || 0, conversions_value: r.metrics.conversions_value || 0 })) });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { res.status(500).json({ error: apiError(e) }); }
 });
 
 // ─── AI Insights ──────────────────────────────────────────────────────────────
@@ -536,7 +619,7 @@ Rules:
     } catch {
       res.json({ insights: [{ title: 'Analysis', description: text }], issues: [], opportunities: [], budget: [], quickWins: [] });
     }
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { res.status(500).json({ error: apiError(e) }); }
 });
 
 // On Vercel the server is exported as a handler; locally it listens on a port
