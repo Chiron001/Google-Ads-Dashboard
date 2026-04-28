@@ -412,14 +412,14 @@ app.get('/api/overview', requireAuth, async (req, res) => {
     const { days, prevStart, prevEnd } = dateRange(startDate, endDate);
 
     const [cur, prev] = await Promise.all([
-      customer.query(`SELECT metrics.impressions,metrics.clicks,metrics.ctr,metrics.average_cpc,metrics.cost_micros,metrics.conversions,metrics.conversions_value,metrics.conversion_rate,metrics.all_conversions,metrics.search_impression_share FROM customer WHERE segments.date BETWEEN '${startDate}' AND '${endDate}'`),
+      customer.query(`SELECT metrics.impressions,metrics.clicks,metrics.ctr,metrics.average_cpc,metrics.cost_micros,metrics.conversions,metrics.conversions_value,metrics.conversions_from_interactions_rate,metrics.all_conversions,metrics.search_impression_share FROM customer WHERE segments.date BETWEEN '${startDate}' AND '${endDate}'`),
       customer.query(`SELECT metrics.impressions,metrics.clicks,metrics.cost_micros,metrics.conversions,metrics.conversions_value FROM customer WHERE segments.date BETWEEN '${prevStart}' AND '${prevEnd}'`),
     ]);
     const m = cur[0]?.metrics || {}, pm = prev[0]?.metrics || {};
     res.json({
       impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0,
       avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros),
-      conversions: m.conversions || 0, conversion_rate: m.conversion_rate || 0,
+      conversions: m.conversions || 0, conversion_rate: m.conversions_from_interactions_rate || 0,
       conversions_value: m.conversions_value || 0, all_conversions: m.all_conversions || 0,
       roas: m.cost_micros > 0 ? m.conversions_value / m2c(m.cost_micros) : 0,
       impression_share: m.search_impression_share || 0,
@@ -453,11 +453,11 @@ app.get('/api/campaigns', requireAuth, async (req, res) => {
     const { GoogleAdsApi } = await import('google-ads-api');
     globalThis._gadsApi = { GoogleAdsApi };
     const customer = getCustomer(req.session.tokens.refresh_token, customerId);
-    const rows = await customer.query(`SELECT campaign.id,campaign.name,campaign.status,campaign.bidding_strategy_type,campaign.advertising_channel_type,campaign.target_cpa.target_cpa_micros,campaign.target_roas.target_roas,metrics.impressions,metrics.clicks,metrics.ctr,metrics.average_cpc,metrics.cost_micros,metrics.conversions,metrics.conversions_value,metrics.conversion_rate,metrics.all_conversions,metrics.search_impression_share,metrics.search_budget_lost_impression_share,metrics.search_rank_lost_impression_share FROM campaign WHERE segments.date BETWEEN '${startDate}' AND '${endDate}' AND campaign.status != 'REMOVED' ORDER BY metrics.cost_micros DESC LIMIT 100`);
+    const rows = await customer.query(`SELECT campaign.id,campaign.name,campaign.status,campaign.bidding_strategy_type,campaign.advertising_channel_type,campaign.target_cpa.target_cpa_micros,campaign.target_roas.target_roas,metrics.impressions,metrics.clicks,metrics.ctr,metrics.average_cpc,metrics.cost_micros,metrics.conversions,metrics.conversions_value,metrics.conversions_from_interactions_rate,metrics.all_conversions,metrics.search_impression_share,metrics.search_budget_lost_impression_share,metrics.search_rank_lost_impression_share FROM campaign WHERE segments.date BETWEEN '${startDate}' AND '${endDate}' AND campaign.status != 'REMOVED' ORDER BY metrics.cost_micros DESC LIMIT 100`);
     res.json({
       campaigns: rows.map(r => {
         const m = r.metrics || {}, c = r.campaign || {};
-        return { id: c.id, name: c.name, status: c.status, channel: c.advertising_channel_type, bidding: c.bidding_strategy_type, target_cpa: c.target_cpa?.target_cpa_micros ? m2c(c.target_cpa.target_cpa_micros) : null, target_roas: c.target_roas?.target_roas || null, impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversions_value: m.conversions_value || 0, conversion_rate: m.conversion_rate || 0, roas: m.cost_micros > 0 ? m.conversions_value / m2c(m.cost_micros) : 0, impression_share: m.search_impression_share || 0, lost_is_budget: m.search_budget_lost_impression_share || 0, lost_is_rank: m.search_rank_lost_impression_share || 0 };
+        return { id: c.id, name: c.name, status: c.status, channel: c.advertising_channel_type, bidding: c.bidding_strategy_type, target_cpa: c.target_cpa?.target_cpa_micros ? m2c(c.target_cpa.target_cpa_micros) : null, target_roas: c.target_roas?.target_roas || null, impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversions_value: m.conversions_value || 0, conversion_rate: m.conversions_from_interactions_rate || 0, roas: m.cost_micros > 0 ? m.conversions_value / m2c(m.cost_micros) : 0, impression_share: m.search_impression_share || 0, lost_is_budget: m.search_budget_lost_impression_share || 0, lost_is_rank: m.search_rank_lost_impression_share || 0 };
       })
     });
   } catch (e) { res.status(500).json({ error: apiError(e) }); }
@@ -473,11 +473,11 @@ app.get('/api/adgroups', requireAuth, async (req, res) => {
     const customer = getCustomer(req.session.tokens.refresh_token, customerId);
     let where = `segments.date BETWEEN '${startDate}' AND '${endDate}' AND ad_group.status != 'REMOVED'`;
     if (campaignId) where += ` AND campaign.id = ${campaignId}`;
-    const rows = await customer.query(`SELECT campaign.id,campaign.name,ad_group.id,ad_group.name,ad_group.status,ad_group.type,metrics.impressions,metrics.clicks,metrics.ctr,metrics.average_cpc,metrics.cost_micros,metrics.conversions,metrics.conversions_value,metrics.conversion_rate FROM ad_group WHERE ${where} ORDER BY metrics.cost_micros DESC LIMIT 200`);
+    const rows = await customer.query(`SELECT campaign.id,campaign.name,ad_group.id,ad_group.name,ad_group.status,ad_group.type,metrics.impressions,metrics.clicks,metrics.ctr,metrics.average_cpc,metrics.cost_micros,metrics.conversions,metrics.conversions_value,metrics.conversions_from_interactions_rate FROM ad_group WHERE ${where} ORDER BY metrics.cost_micros DESC LIMIT 200`);
     res.json({
       adGroups: rows.map(r => {
         const m = r.metrics || {};
-        return { campaign_id: r.campaign.id, campaign_name: r.campaign.name, id: r.ad_group.id, name: r.ad_group.name, status: r.ad_group.status, type: r.ad_group.type, impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversions_value: m.conversions_value || 0, conversion_rate: m.conversion_rate || 0, roas: m.cost_micros > 0 ? m.conversions_value / m2c(m.cost_micros) : 0 };
+        return { campaign_id: r.campaign.id, campaign_name: r.campaign.name, id: r.ad_group.id, name: r.ad_group.name, status: r.ad_group.status, type: r.ad_group.type, impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversions_value: m.conversions_value || 0, conversion_rate: m.conversions_from_interactions_rate || 0, roas: m.cost_micros > 0 ? m.conversions_value / m2c(m.cost_micros) : 0 };
       })
     });
   } catch (e) { res.status(500).json({ error: apiError(e) }); }
@@ -494,13 +494,13 @@ app.get('/api/ads', requireAuth, async (req, res) => {
     let where = `segments.date BETWEEN '${startDate}' AND '${endDate}' AND ad_group_ad.status != 'REMOVED'`;
     if (campaignId) where += ` AND campaign.id = ${campaignId}`;
     if (adGroupId) where += ` AND ad_group.id = ${adGroupId}`;
-    const rows = await customer.query(`SELECT campaign.name,ad_group.name,ad_group_ad.ad.id,ad_group_ad.ad.name,ad_group_ad.ad.type,ad_group_ad.status,ad_group_ad.ad.final_urls,ad_group_ad.ad.responsive_search_ad.headlines,ad_group_ad.ad.responsive_search_ad.descriptions,metrics.impressions,metrics.clicks,metrics.ctr,metrics.average_cpc,metrics.cost_micros,metrics.conversions,metrics.conversions_value,metrics.conversion_rate FROM ad_group_ad WHERE ${where} ORDER BY metrics.cost_micros DESC LIMIT 200`);
+    const rows = await customer.query(`SELECT campaign.name,ad_group.name,ad_group_ad.ad.id,ad_group_ad.ad.name,ad_group_ad.ad.type,ad_group_ad.status,ad_group_ad.ad.final_urls,ad_group_ad.ad.responsive_search_ad.headlines,ad_group_ad.ad.responsive_search_ad.descriptions,metrics.impressions,metrics.clicks,metrics.ctr,metrics.average_cpc,metrics.cost_micros,metrics.conversions,metrics.conversions_value,metrics.conversions_from_interactions_rate FROM ad_group_ad WHERE ${where} ORDER BY metrics.cost_micros DESC LIMIT 200`);
     res.json({
       ads: rows.map(r => {
         const m = r.metrics || {}, ad = r.ad_group_ad?.ad || {};
         const headlines = ad.responsive_search_ad?.headlines?.slice(0, 3).map(h => h.text).join(' | ') || '';
         const descriptions = ad.responsive_search_ad?.descriptions?.slice(0, 2).map(d => d.text).join(' | ') || '';
-        return { campaign_name: r.campaign.name, ad_group_name: r.ad_group.name, id: ad.id, name: ad.name || headlines || `Ad ${ad.id}`, type: r.ad_group_ad.status ? ad.type : 'UNKNOWN', status: r.ad_group_ad.status, final_url: ad.final_urls?.[0] || '', headlines, descriptions, impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversions_value: m.conversions_value || 0, conversion_rate: m.conversion_rate || 0, roas: m.cost_micros > 0 ? m.conversions_value / m2c(m.cost_micros) : 0 };
+        return { campaign_name: r.campaign.name, ad_group_name: r.ad_group.name, id: ad.id, name: ad.name || headlines || `Ad ${ad.id}`, type: r.ad_group_ad.status ? ad.type : 'UNKNOWN', status: r.ad_group_ad.status, final_url: ad.final_urls?.[0] || '', headlines, descriptions, impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversions_value: m.conversions_value || 0, conversion_rate: m.conversions_from_interactions_rate || 0, roas: m.cost_micros > 0 ? m.conversions_value / m2c(m.cost_micros) : 0 };
       })
     });
   } catch (e) { res.status(500).json({ error: apiError(e) }); }
@@ -514,11 +514,11 @@ app.get('/api/keywords', requireAuth, async (req, res) => {
     const { GoogleAdsApi } = await import('google-ads-api');
     globalThis._gadsApi = { GoogleAdsApi };
     const customer = getCustomer(req.session.tokens.refresh_token, customerId);
-    const rows = await customer.query(`SELECT campaign.name,ad_group.name,ad_group_criterion.keyword.text,ad_group_criterion.keyword.match_type,ad_group_criterion.status,ad_group_criterion.quality_info.quality_score,metrics.impressions,metrics.clicks,metrics.ctr,metrics.average_cpc,metrics.cost_micros,metrics.conversions,metrics.conversion_rate,metrics.search_impression_share FROM keyword_view WHERE segments.date BETWEEN '${startDate}' AND '${endDate}' AND ad_group_criterion.status != 'REMOVED' ORDER BY metrics.cost_micros DESC LIMIT 200`);
+    const rows = await customer.query(`SELECT campaign.name,ad_group.name,ad_group_criterion.keyword.text,ad_group_criterion.keyword.match_type,ad_group_criterion.status,ad_group_criterion.quality_info.quality_score,metrics.impressions,metrics.clicks,metrics.ctr,metrics.average_cpc,metrics.cost_micros,metrics.conversions,metrics.conversions_from_interactions_rate,metrics.search_impression_share FROM keyword_view WHERE segments.date BETWEEN '${startDate}' AND '${endDate}' AND ad_group_criterion.status != 'REMOVED' ORDER BY metrics.cost_micros DESC LIMIT 200`);
     res.json({
       keywords: rows.map(r => {
         const m = r.metrics || {}, kw = r.ad_group_criterion || {};
-        return { campaign_name: r.campaign.name, ad_group_name: r.ad_group.name, keyword: kw.keyword?.text, match_type: kw.keyword?.match_type, status: kw.status, quality_score: kw.quality_info?.quality_score || null, impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversion_rate: m.conversion_rate || 0, impression_share: m.search_impression_share || 0 };
+        return { campaign_name: r.campaign.name, ad_group_name: r.ad_group.name, keyword: kw.keyword?.text, match_type: kw.keyword?.match_type, status: kw.status, quality_score: kw.quality_info?.quality_score || null, impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversion_rate: m.conversions_from_interactions_rate || 0, impression_share: m.search_impression_share || 0 };
       })
     });
   } catch (e) { res.status(500).json({ error: apiError(e) }); }
@@ -532,11 +532,11 @@ app.get('/api/search-terms', requireAuth, async (req, res) => {
     const { GoogleAdsApi } = await import('google-ads-api');
     globalThis._gadsApi = { GoogleAdsApi };
     const customer = getCustomer(req.session.tokens.refresh_token, customerId);
-    const rows = await customer.query(`SELECT campaign.name,ad_group.name,search_term_view.search_term,search_term_view.status,metrics.impressions,metrics.clicks,metrics.ctr,metrics.average_cpc,metrics.cost_micros,metrics.conversions,metrics.conversion_rate FROM search_term_view WHERE segments.date BETWEEN '${startDate}' AND '${endDate}' ORDER BY metrics.impressions DESC LIMIT 200`);
+    const rows = await customer.query(`SELECT campaign.name,ad_group.name,search_term_view.search_term,search_term_view.status,metrics.impressions,metrics.clicks,metrics.ctr,metrics.average_cpc,metrics.cost_micros,metrics.conversions,metrics.conversions_from_interactions_rate FROM search_term_view WHERE segments.date BETWEEN '${startDate}' AND '${endDate}' ORDER BY metrics.impressions DESC LIMIT 200`);
     res.json({
       searchTerms: rows.map(r => {
         const m = r.metrics || {};
-        return { campaign_name: r.campaign.name, ad_group_name: r.ad_group.name, search_term: r.search_term_view.search_term, status: r.search_term_view.status, impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversion_rate: m.conversion_rate || 0 };
+        return { campaign_name: r.campaign.name, ad_group_name: r.ad_group.name, search_term: r.search_term_view.search_term, status: r.search_term_view.status, impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversion_rate: m.conversions_from_interactions_rate || 0 };
       })
     });
   } catch (e) { res.status(500).json({ error: apiError(e) }); }
