@@ -10,14 +10,18 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Cookie-session stores all data client-side — works on Vercel (stateless/serverless)
+// Trust Vercel/reverse-proxy headers so HTTPS is detected correctly for secure cookies
+app.set('trust proxy', 1);
+
 app.use(express.json({ limit: '10mb' }));
+const isProd = !!(process.env.VERCEL || process.env.NODE_ENV === 'production');
 app.use(cookieSession({
   name: 'gads',
   keys: [process.env.SESSION_SECRET || 'gads-dash-secret-change-me'],
   maxAge: 24 * 60 * 60 * 1000,
-  sameSite: 'lax',
-  secure: process.env.NODE_ENV === 'production',
+  sameSite: isProd ? 'none' : 'lax',
+  secure: isProd,
+  httpOnly: true,
 }));
 app.use(express.static(__dirname));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'Google Ads.html')));
@@ -255,6 +259,22 @@ app.get('/api/auth/status', (req, res) => {
 app.post('/api/auth/logout', (req, res) => {
   req.session = null; // cookie-session: setting to null clears the cookie
   res.json({ success: true });
+});
+
+// Debug endpoint — shows session/env state without exposing secrets
+app.get('/api/debug', (req, res) => {
+  res.json({
+    authenticated: !!req.session?.tokens,
+    hasCustomerId: !!req.session?.customerId,
+    env: {
+      configured: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_DEVELOPER_TOKEN),
+      customerId: !!process.env.GOOGLE_CUSTOMER_ID,
+      anthropic: !!process.env.ANTHROPIC_API_KEY,
+      isProd,
+    },
+    proto: req.headers['x-forwarded-proto'] || req.protocol,
+    host: req.headers['x-forwarded-host'] || req.headers.host,
+  });
 });
 
 app.post('/api/auth/customer', requireAuth, (req, res) => {
