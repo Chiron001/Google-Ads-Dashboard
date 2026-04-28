@@ -242,10 +242,18 @@ tr:hover td { background: rgba(255,255,255,0.02); }
     </div>
     <h1>Google Ads AI Dashboard</h1>
     <p>Connect your Google Ads account to get end-to-end analytics powered by Claude AI — campaigns, ad groups, ads, keywords, and actionable insights.</p>
-    <button class="btn btn-primary w-full" onclick="connectGoogle()" style="justify-content:center;padding:12px">
+
+    <!-- Credential status badges (filled by JS) -->
+    <div id="cred-status" style="margin-bottom:20px;display:none">
+      <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px;text-align:left">Credential Status:</div>
+      <div id="cred-list" style="display:flex;flex-direction:column;gap:5px;text-align:left"></div>
+    </div>
+
+    <button class="btn btn-primary w-full" id="btn-connect" onclick="connectGoogle()" style="justify-content:center;padding:12px">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
       Connect Google Account
     </button>
+    <div id="connect-error" style="display:none;margin-top:12px;padding:12px;background:var(--red-bg);border:1px solid rgba(255,77,109,0.3);border-radius:var(--r-sm);font-size:12px;color:var(--red);text-align:left;line-height:1.5"></div>
     <div class="divider">or</div>
     <button class="btn btn-secondary w-full" onclick="startDemo()" style="justify-content:center">
       Try with Demo Data
@@ -256,32 +264,56 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 
 <!-- ═══ SETUP SCREEN ═══════════════════════════════════════════════════════════ -->
 <div id="screen-setup" class="auth-wrap" style="display:none">
-  <div class="auth-card" style="width:540px">
+  <div class="auth-card" style="width:580px">
     <div class="auth-logo" style="background:var(--orange)">
       <svg viewBox="0 0 24 24" fill="none"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
     </div>
-    <h1>Setup Required</h1>
-    <p>Configure your environment to connect to the Google Ads API. This is a one-time setup.</p>
+    <h1>One-Time Setup Required</h1>
+    <p>You need 3 things from Google to connect your real account. Follow these steps, then restart the server.</p>
+
     <div class="setup-steps">
       <div class="setup-step">
         <div class="step-num">1</div>
-        <div><div class="step-title">Get a Google Ads Developer Token</div><div class="step-desc">Apply at <a href="https://developers.google.com/google-ads/api/docs/get-started/dev-token" target="_blank">Google Ads API Center</a>. Basic access works for testing your own account.</div></div>
+        <div>
+          <div class="step-title">Google Cloud Project + OAuth Credentials</div>
+          <div class="step-desc">
+            Go to <a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a> → Create project → Enable <b>Google Ads API</b> → APIs &amp; Services → Credentials → <b>Create OAuth 2.0 Client ID</b> (Web application type).<br>
+            Add this Authorized Redirect URI: <code style="color:var(--accent);background:var(--bg2);padding:1px 4px;border-radius:3px">http://localhost:3000/api/auth/callback</code><br>
+            → Copy <b>Client ID</b> and <b>Client Secret</b>.
+          </div>
+        </div>
       </div>
       <div class="setup-step">
         <div class="step-num">2</div>
-        <div><div class="step-title">Create OAuth 2.0 Credentials</div><div class="step-desc">Go to <a href="https://console.cloud.google.com" target="_blank">Google Cloud Console</a> → APIs &amp; Services → Credentials. Enable the Google Ads API. Add redirect URI: <code style="color:var(--accent)">http://localhost:3000/api/auth/callback</code></div></div>
+        <div>
+          <div class="step-title">Google Ads Developer Token</div>
+          <div class="step-desc">
+            Log in to <a href="https://ads.google.com" target="_blank">Google Ads</a> → Tools &amp; Settings → Setup → <b>API Center</b>. Apply for a developer token. Basic access (for your own account) is usually approved immediately.<br>
+            → Copy the <b>Developer Token</b>.
+          </div>
+        </div>
       </div>
       <div class="setup-step">
         <div class="step-num">3</div>
-        <div><div class="step-title">Configure .env File</div><div class="step-desc">Copy <code style="color:var(--accent)">.env.example</code> to <code style="color:var(--accent)">.env</code> and fill in your credentials. Optionally add your Anthropic API key for AI insights.</div></div>
-      </div>
-      <div class="setup-step">
-        <div class="step-num">4</div>
-        <div><div class="step-title">Restart the Server</div><div class="step-desc">Run <code style="color:var(--accent)">npm start</code> after editing .env. Then connect your Google account.</div></div>
+        <div>
+          <div class="step-title">Create your .env file</div>
+          <div class="step-desc">
+            In the project folder, copy <code style="color:var(--accent)">.env.example</code> → <code style="color:var(--accent)">.env</code> and fill in:
+            <div style="margin:8px 0;padding:10px;background:var(--bg2);border-radius:var(--r-sm);font-family:monospace;font-size:11px;line-height:1.8;color:var(--text)">
+              GOOGLE_CLIENT_ID=<span style="color:var(--accent)">your-client-id.apps.googleusercontent.com</span><br>
+              GOOGLE_CLIENT_SECRET=<span style="color:var(--accent)">your-client-secret</span><br>
+              GOOGLE_DEVELOPER_TOKEN=<span style="color:var(--accent)">your-developer-token</span><br>
+              GOOGLE_CUSTOMER_ID=<span style="color:var(--accent)">1234567890</span><span style="color:var(--text3)">  ← digits only</span><br>
+              ANTHROPIC_API_KEY=<span style="color:var(--accent)">sk-ant-...</span><span style="color:var(--text3)">  ← for AI insights</span>
+            </div>
+            Then restart: <code style="color:var(--accent)">npm start</code> and refresh this page.
+          </div>
+        </div>
       </div>
     </div>
+
     <button class="btn btn-secondary w-full" onclick="startDemo()" style="justify-content:center">
-      Explore with Demo Data Instead
+      Explore with Demo Data Instead →
     </button>
   </div>
 </div>
@@ -659,7 +691,39 @@ async function init() {
   } else if (!status.configured) {
     showScreen('setup');
   } else {
+    // Show auth screen with live credential status panel
     showScreen('auth');
+    renderCredStatus(status.missing || {});
+  }
+}
+
+function renderCredStatus(missing) {
+  const items = [
+    { key: 'clientId',       label: 'GOOGLE_CLIENT_ID',       hint: 'OAuth 2.0 client ID from Google Cloud Console' },
+    { key: 'clientSecret',   label: 'GOOGLE_CLIENT_SECRET',   hint: 'OAuth 2.0 client secret' },
+    { key: 'developerToken', label: 'GOOGLE_DEVELOPER_TOKEN', hint: 'From Google Ads API Center' },
+    { key: 'customerId',     label: 'GOOGLE_CUSTOMER_ID',     hint: 'Your Google Ads account ID (digits only)' },
+    { key: 'anthropicKey',   label: 'ANTHROPIC_API_KEY',      hint: 'Optional — needed for AI Insights' },
+  ];
+  const anyMissing = Object.values(missing).some(v => v);
+  if (!anyMissing) return; // all good, hide the panel
+  document.getElementById('cred-status').style.display = '';
+  document.getElementById('cred-list').innerHTML = items.map(i => {
+    const ok = !missing[i.key];
+    return `<div style="display:flex;align-items:center;gap:8px;font-size:11px">
+      <span style="color:${ok ? 'var(--green)' : 'var(--red)'}; font-size:14px; line-height:1">${ok ? '✓' : '✗'}</span>
+      <span style="font-weight:600;color:${ok ? 'var(--text2)' : 'var(--text)'}; font-family:monospace">${i.label}</span>
+      ${ok ? '' : `<span style="color:var(--text3)">— ${i.hint}</span>`}
+    </div>`;
+  }).join('');
+  // Disable the connect button if required creds are missing
+  const requiredMissing = missing.clientId || missing.clientSecret || missing.developerToken;
+  if (requiredMissing) {
+    document.getElementById('btn-connect').disabled = true;
+    document.getElementById('btn-connect').style.opacity = '0.4';
+    document.getElementById('btn-connect').style.cursor = 'not-allowed';
+    document.getElementById('connect-error').style.display = '';
+    document.getElementById('connect-error').textContent = 'Add the missing credentials to your .env file and restart the server (npm start), then refresh this page.';
   }
 }
 
@@ -701,8 +765,21 @@ async function startDemo() {
 }
 
 async function connectGoogle() {
-  const { url } = await apiFetch('/api/auth/url');
-  location.href = url;
+  const errEl = document.getElementById('connect-error');
+  errEl.style.display = 'none';
+  try {
+    const result = await fetch('/api/auth/url');
+    const data = await result.json();
+    if (!result.ok || data.error) {
+      errEl.style.display = '';
+      errEl.textContent = data.error || 'Failed to generate auth URL. Check your .env file and restart.';
+      return;
+    }
+    location.href = data.url;
+  } catch (e) {
+    errEl.style.display = '';
+    errEl.textContent = 'Server error: ' + e.message;
+  }
 }
 
 async function logout() {

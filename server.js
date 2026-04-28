@@ -173,6 +173,18 @@ function demoOverview(days) {
 // ─── Auth Routes ─────────────────────────────────────────────────────────────
 
 app.get('/api/auth/url', async (req, res) => {
+  // Validate all required credentials before generating the URL
+  const missing = [];
+  if (!process.env.GOOGLE_CLIENT_ID)     missing.push('GOOGLE_CLIENT_ID');
+  if (!process.env.GOOGLE_CLIENT_SECRET) missing.push('GOOGLE_CLIENT_SECRET');
+  if (!process.env.GOOGLE_DEVELOPER_TOKEN) missing.push('GOOGLE_DEVELOPER_TOKEN');
+  if (missing.length) {
+    return res.status(400).json({
+      error: `Missing credentials in .env: ${missing.join(', ')}. Copy .env.example to .env and fill in your values, then restart the server.`,
+      missing,
+    });
+  }
+
   try {
     const { google } = await import('googleapis');
     const oauth2 = new google.auth.OAuth2(
@@ -208,13 +220,25 @@ app.get('/api/auth/callback', async (req, res) => {
 });
 
 app.get('/api/auth/status', (req, res) => {
-  const configured = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_DEVELOPER_TOKEN);
+  const configured = !!(
+    process.env.GOOGLE_CLIENT_ID &&
+    process.env.GOOGLE_CLIENT_SECRET &&
+    process.env.GOOGLE_DEVELOPER_TOKEN
+  );
   res.json({
     authenticated: !!req.session?.tokens,
     user: req.session?.userInfo || null,
     customerId: req.session?.customerId || process.env.GOOGLE_CUSTOMER_ID || null,
     configured,
     hasAnthropicKey: !!process.env.ANTHROPIC_API_KEY,
+    // Tell the frontend exactly which credentials are missing
+    missing: {
+      clientId: !process.env.GOOGLE_CLIENT_ID,
+      clientSecret: !process.env.GOOGLE_CLIENT_SECRET,
+      developerToken: !process.env.GOOGLE_DEVELOPER_TOKEN,
+      customerId: !process.env.GOOGLE_CUSTOMER_ID,
+      anthropicKey: !process.env.ANTHROPIC_API_KEY,
+    },
   });
 });
 
