@@ -230,6 +230,56 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 .text-sm { font-size: 11px; }
 .font-mono { font-family: 'SF Mono', 'Fira Mono', monospace; }
 .w-full { width: 100%; }
+
+/* ─── SIDEBAR QUICK STATS ─── */
+.sidebar-quick { padding: 12px 8px; border-top: 1px solid var(--border); }
+.sq-section-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; padding: 0 8px 8px; }
+.sq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.sq-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 8px 10px; transition: border-color 0.15s; }
+.sq-card:hover { border-color: var(--border2); }
+.sq-val { font-size: 13px; font-weight: 700; line-height: 1.2; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sq-key { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.04em; }
+.sidebar-account { margin: 8px 8px 0; padding: 7px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-sm); display: flex; align-items: center; gap: 7px; }
+.account-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex-shrink: 0; animation: blink 3s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.account-dot.demo { background: var(--orange); animation: none; }
+.sidebar-account-text { font-size: 11px; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.3; }
+.sidebar-account-id { font-size: 10px; color: var(--text3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ─── MOBILE HAMBURGER + OVERLAY ─── */
+.hamburger { display: none; width: 36px; height: 36px; border-radius: var(--r-sm); border: 1px solid var(--border); background: transparent; color: var(--text2); cursor: pointer; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; }
+.hamburger:hover { background: var(--card2); color: var(--text); }
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 199; backdrop-filter: blur(2px); }
+.sidebar-overlay.visible { display: block; }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 900px) {
+  .sidebar { width: 200px; }
+}
+@media (max-width: 768px) {
+  #app { height: 100dvh; }
+  .sidebar { position: fixed; left: -240px; z-index: 200; transition: left 0.28s cubic-bezier(0.4,0,0.2,1); width: 228px; }
+  .sidebar.open { left: 0; box-shadow: 8px 0 40px rgba(0,0,0,0.7); }
+  .hamburger { display: flex; }
+  .chart-grid { grid-template-columns: 1fr !important; }
+  .insights-container { grid-template-columns: 1fr !important; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .content-area { padding: 14px; }
+  .header { flex-wrap: wrap; gap: 8px; padding: 12px 14px; }
+  .date-bar { flex-wrap: wrap; order: 10; width: 100%; gap: 4px; }
+  .header-title { font-size: 14px; }
+  .search-input { width: 140px; }
+  .table-toolbar { flex-wrap: wrap; }
+}
+@media (max-width: 480px) {
+  .kpi-value { font-size: 20px; }
+  .preset-btn { padding: 4px 7px; font-size: 11px; }
+  .date-input { padding: 4px 7px; font-size: 11px; }
+  .sq-val { font-size: 12px; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  #toast { bottom: 16px; right: 12px; left: 12px; }
+  .toast-item { max-width: 100%; }
+}
 </style>
 </head>
 <body>
@@ -367,6 +417,24 @@ tr:hover td { background: rgba(255,255,255,0.02); }
         </div>
       </div>
 
+      <!-- Quick Stats (filled by JS after data loads) -->
+      <div class="sidebar-quick" id="sidebar-quick" style="display:none">
+        <div class="sq-section-label">Period Summary</div>
+        <div class="sq-grid">
+          <div class="sq-card"><div class="sq-val" id="sq-spend">—</div><div class="sq-key">Spend</div></div>
+          <div class="sq-card"><div class="sq-val" id="sq-roas">—</div><div class="sq-key">ROAS</div></div>
+          <div class="sq-card"><div class="sq-val" id="sq-conv">—</div><div class="sq-key">Conv.</div></div>
+          <div class="sq-card"><div class="sq-val" id="sq-ctr">—</div><div class="sq-key">CTR</div></div>
+        </div>
+        <div class="sidebar-account" id="sidebar-account" style="display:none">
+          <div class="account-dot" id="account-dot"></div>
+          <div style="min-width:0">
+            <div class="sidebar-account-text" id="account-name-chip">—</div>
+            <div class="sidebar-account-id" id="account-id-chip"></div>
+          </div>
+        </div>
+      </div>
+
       <div class="sidebar-bottom">
         <div class="user-info">
           <div class="user-avatar" id="user-avatar">?</div>
@@ -391,6 +459,9 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 
       <!-- HEADER -->
       <div class="header">
+        <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
         <div>
           <div class="header-title" id="view-title">Overview</div>
           <div class="header-sub" id="view-sub">Account performance at a glance</div>
@@ -643,6 +714,7 @@ tr:hover td { background: rgba(255,255,255,0.02); }
       </div><!-- /content-area -->
     </div><!-- /main-wrap -->
   </div><!-- /layout -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 </div><!-- /app -->
 
 <div id="toast"></div>
@@ -790,8 +862,43 @@ async function logout() {
 // ════════════════════════════════════════════════════════════════════════════
 // NAVIGATION
 // ════════════════════════════════════════════════════════════════════════════
+// ─── SIDEBAR MOBILE ───
+function toggleSidebar() {
+  document.querySelector('.sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('visible');
+}
+function closeSidebar() {
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('visible');
+}
+
+function updateSidebarStats(o) {
+  const el = document.getElementById('sidebar-quick');
+  if (!o || !el) return;
+  el.style.display = '';
+  const fmtShort = (n) => {
+    if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+    if (n >= 1000) return '$' + (n/1000).toFixed(0) + 'K';
+    return '$' + (n||0).toFixed(0);
+  };
+  document.getElementById('sq-spend').textContent = fmtShort(o.cost || 0);
+  document.getElementById('sq-roas').textContent = (o.roas || 0).toFixed(1) + 'x';
+  document.getElementById('sq-conv').textContent = fmtN(o.conversions, 0);
+  document.getElementById('sq-ctr').textContent = ((o.ctr || 0) * 100).toFixed(2) + '%';
+  // Account chip
+  const chip = document.getElementById('sidebar-account');
+  if (chip) {
+    chip.style.display = '';
+    const dot = document.getElementById('account-dot');
+    dot.className = 'account-dot' + (S.mode === 'demo' ? ' demo' : '');
+    document.getElementById('account-name-chip').textContent = S.auth?.user?.name || (S.mode === 'demo' ? 'Demo Mode' : 'Connected');
+    document.getElementById('account-id-chip').textContent = S.auth?.customerId ? 'ID: ' + S.auth.customerId : '';
+  }
+}
+
 function navigate(view) {
   S.view = view;
+  closeSidebar();
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   document.getElementById('nav-' + view)?.classList.add('active');
   document.querySelectorAll('[id^="view-"]').forEach(el => el.style.display = 'none');
@@ -964,6 +1071,7 @@ async function loadOverview() {
     renderTimeseries('clicks');
     renderDeviceChart();
     renderCampaignChart();
+    updateSidebarStats(S.data.overview);
   } catch (e) { toast(e.message, true); }
 }
 
