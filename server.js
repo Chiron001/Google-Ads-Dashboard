@@ -59,6 +59,17 @@ const m2c = (micros) => (micros || 0) / 1_000_000;
 const pct = (a, b) => (b && b !== 0) ? ((a - b) / b) * 100 : 0;
 const fmtDate = (d) => d.toISOString().split('T')[0];
 
+// Google Ads API v23 returns enum fields as integers — map them back to names
+const ENUMS = {
+  status:      { 0:'UNSPECIFIED', 1:'UNKNOWN', 2:'ENABLED', 3:'PAUSED', 4:'REMOVED' },
+  channel:     { 0:'UNSPECIFIED', 1:'UNKNOWN', 2:'SEARCH', 3:'DISPLAY', 4:'SHOPPING', 5:'HOTEL', 6:'VIDEO', 7:'MULTI_CHANNEL', 8:'LOCAL', 9:'SMART', 10:'PERFORMANCE_MAX', 11:'LOCAL_SERVICES', 12:'DISCOVERY' },
+  bidding:     { 0:'UNSPECIFIED', 1:'UNKNOWN', 3:'ENHANCED_CPC', 6:'MANUAL_CPC', 7:'MANUAL_CPM', 8:'MANUAL_CPV', 9:'MAXIMIZE_CONVERSIONS', 10:'MAXIMIZE_CONVERSION_VALUE', 13:'TARGET_CPA', 14:'TARGET_CPM', 15:'TARGET_IMPRESSION_SHARE', 17:'TARGET_ROAS', 18:'TARGET_SPEND' },
+  match_type:  { 0:'UNSPECIFIED', 1:'UNKNOWN', 2:'EXACT', 3:'PHRASE', 4:'BROAD' },
+  device:      { 0:'UNSPECIFIED', 1:'UNKNOWN', 2:'MOBILE', 3:'TABLET', 4:'DESKTOP', 5:'CONNECTED_TV', 6:'OTHER' },
+  st_status:   { 0:'UNSPECIFIED', 1:'UNKNOWN', 2:'ADDED', 3:'EXCLUDED', 4:'ADDED_EXCLUDED', 5:'NONE' },
+};
+const eVal = (map, v) => (v === null || v === undefined) ? v : (typeof v === 'string' ? v : (map[v] || String(v)));
+
 function dateRange(start, end) {
   const s = new Date(start), e = new Date(end);
   const days = Math.ceil((e - s) / 86400000) + 1;
@@ -457,7 +468,7 @@ app.get('/api/campaigns', requireAuth, async (req, res) => {
     res.json({
       campaigns: rows.map(r => {
         const m = r.metrics || {}, c = r.campaign || {};
-        return { id: c.id, name: c.name, status: c.status, channel: c.advertising_channel_type, bidding: c.bidding_strategy_type, target_cpa: c.target_cpa?.target_cpa_micros ? m2c(c.target_cpa.target_cpa_micros) : null, target_roas: c.target_roas?.target_roas || null, impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversions_value: m.conversions_value || 0, conversion_rate: m.conversions_from_interactions_rate || 0, roas: m.cost_micros > 0 ? m.conversions_value / m2c(m.cost_micros) : 0, impression_share: m.search_impression_share || 0, lost_is_budget: m.search_budget_lost_impression_share || 0, lost_is_rank: m.search_rank_lost_impression_share || 0 };
+        return { id: c.id, name: c.name, status: eVal(ENUMS.status, c.status), channel: eVal(ENUMS.channel, c.advertising_channel_type), bidding: eVal(ENUMS.bidding, c.bidding_strategy_type), target_cpa: c.target_cpa?.target_cpa_micros ? m2c(c.target_cpa.target_cpa_micros) : null, target_roas: c.target_roas?.target_roas || null, impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversions_value: m.conversions_value || 0, conversion_rate: m.conversions_from_interactions_rate || 0, roas: m.cost_micros > 0 ? m.conversions_value / m2c(m.cost_micros) : 0, impression_share: m.search_impression_share || 0, lost_is_budget: m.search_budget_lost_impression_share || 0, lost_is_rank: m.search_rank_lost_impression_share || 0 };
       })
     });
   } catch (e) { res.status(500).json({ error: apiError(e) }); }
@@ -477,7 +488,7 @@ app.get('/api/adgroups', requireAuth, async (req, res) => {
     res.json({
       adGroups: rows.map(r => {
         const m = r.metrics || {};
-        return { campaign_id: r.campaign.id, campaign_name: r.campaign.name, id: r.ad_group.id, name: r.ad_group.name, status: r.ad_group.status, type: r.ad_group.type, impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversions_value: m.conversions_value || 0, conversion_rate: m.conversions_from_interactions_rate || 0, roas: m.cost_micros > 0 ? m.conversions_value / m2c(m.cost_micros) : 0 };
+        return { campaign_id: r.campaign.id, campaign_name: r.campaign.name, id: r.ad_group.id, name: r.ad_group.name, status: eVal(ENUMS.status, r.ad_group.status), type: r.ad_group.type, impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversions_value: m.conversions_value || 0, conversion_rate: m.conversions_from_interactions_rate || 0, roas: m.cost_micros > 0 ? m.conversions_value / m2c(m.cost_micros) : 0 };
       })
     });
   } catch (e) { res.status(500).json({ error: apiError(e) }); }
@@ -500,7 +511,8 @@ app.get('/api/ads', requireAuth, async (req, res) => {
         const m = r.metrics || {}, ad = r.ad_group_ad?.ad || {};
         const headlines = ad.responsive_search_ad?.headlines?.slice(0, 3).map(h => h.text).join(' | ') || '';
         const descriptions = ad.responsive_search_ad?.descriptions?.slice(0, 2).map(d => d.text).join(' | ') || '';
-        return { campaign_name: r.campaign.name, ad_group_name: r.ad_group.name, id: ad.id, name: ad.name || headlines || `Ad ${ad.id}`, type: r.ad_group_ad.status ? ad.type : 'UNKNOWN', status: r.ad_group_ad.status, final_url: ad.final_urls?.[0] || '', headlines, descriptions, impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversions_value: m.conversions_value || 0, conversion_rate: m.conversions_from_interactions_rate || 0, roas: m.cost_micros > 0 ? m.conversions_value / m2c(m.cost_micros) : 0 };
+        const adStatus = eVal(ENUMS.status, r.ad_group_ad.status);
+        return { campaign_name: r.campaign.name, ad_group_name: r.ad_group.name, id: ad.id, name: ad.name || headlines || `Ad ${ad.id}`, type: ad.type, status: adStatus, final_url: ad.final_urls?.[0] || '', headlines, descriptions, impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversions_value: m.conversions_value || 0, conversion_rate: m.conversions_from_interactions_rate || 0, roas: m.cost_micros > 0 ? m.conversions_value / m2c(m.cost_micros) : 0 };
       })
     });
   } catch (e) { res.status(500).json({ error: apiError(e) }); }
@@ -518,7 +530,7 @@ app.get('/api/keywords', requireAuth, async (req, res) => {
     res.json({
       keywords: rows.map(r => {
         const m = r.metrics || {}, kw = r.ad_group_criterion || {};
-        return { campaign_name: r.campaign.name, ad_group_name: r.ad_group.name, keyword: kw.keyword?.text, match_type: kw.keyword?.match_type, status: kw.status, quality_score: kw.quality_info?.quality_score || null, impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversion_rate: m.conversions_from_interactions_rate || 0, impression_share: m.search_impression_share || 0 };
+        return { campaign_name: r.campaign.name, ad_group_name: r.ad_group.name, keyword: kw.keyword?.text, match_type: eVal(ENUMS.match_type, kw.keyword?.match_type), status: eVal(ENUMS.status, kw.status), quality_score: kw.quality_info?.quality_score || null, impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversion_rate: m.conversions_from_interactions_rate || 0, impression_share: m.search_impression_share || 0 };
       })
     });
   } catch (e) { res.status(500).json({ error: apiError(e) }); }
@@ -536,7 +548,7 @@ app.get('/api/search-terms', requireAuth, async (req, res) => {
     res.json({
       searchTerms: rows.map(r => {
         const m = r.metrics || {};
-        return { campaign_name: r.campaign.name, ad_group_name: r.ad_group.name, search_term: r.search_term_view.search_term, status: r.search_term_view.status, impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversion_rate: m.conversions_from_interactions_rate || 0 };
+        return { campaign_name: r.campaign.name, ad_group_name: r.ad_group.name, search_term: r.search_term_view.search_term, status: eVal(ENUMS.st_status, r.search_term_view.status), impressions: m.impressions || 0, clicks: m.clicks || 0, ctr: m.ctr || 0, avg_cpc: m2c(m.average_cpc), cost: m2c(m.cost_micros), conversions: m.conversions || 0, conversion_rate: m.conversions_from_interactions_rate || 0 };
       })
     });
   } catch (e) { res.status(500).json({ error: apiError(e) }); }
@@ -551,7 +563,7 @@ app.get('/api/devices', requireAuth, async (req, res) => {
     globalThis._gadsApi = { GoogleAdsApi };
     const customer = getCustomer(req.session.tokens.refresh_token, customerId);
     const rows = await customer.query(`SELECT segments.device,metrics.impressions,metrics.clicks,metrics.cost_micros,metrics.conversions,metrics.conversions_value FROM customer WHERE segments.date BETWEEN '${startDate}' AND '${endDate}'`);
-    res.json({ devices: rows.map(r => ({ device: r.segments.device, impressions: r.metrics.impressions || 0, clicks: r.metrics.clicks || 0, cost: m2c(r.metrics.cost_micros), conversions: r.metrics.conversions || 0, conversions_value: r.metrics.conversions_value || 0 })) });
+    res.json({ devices: rows.map(r => ({ device: eVal(ENUMS.device, r.segments.device), impressions: r.metrics.impressions || 0, clicks: r.metrics.clicks || 0, cost: m2c(r.metrics.cost_micros), conversions: r.metrics.conversions || 0, conversions_value: r.metrics.conversions_value || 0 })) });
   } catch (e) { res.status(500).json({ error: apiError(e) }); }
 });
 
