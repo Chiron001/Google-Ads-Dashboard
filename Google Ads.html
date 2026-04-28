@@ -192,10 +192,10 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 .generating-wrap p { color: var(--text2); margin-top: 16px; font-size: 13px; }
 
 /* ─── AD PREVIEW ─── */
-.ad-preview { max-width: 260px; }
-.ad-headline { font-size: 12px; font-weight: 600; color: #4285f4; line-height: 1.3; }
-.ad-desc { font-size: 11px; color: var(--text2); line-height: 1.4; margin-top: 2px; }
-.ad-url { font-size: 10px; color: var(--green); }
+.ad-preview { max-width: 240px; min-width: 160px; overflow: hidden; }
+.ad-headline { font-size: 12px; font-weight: 600; color: #4285f4; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ad-desc { font-size: 11px; color: var(--text2); line-height: 1.4; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ad-url { font-size: 10px; color: var(--green); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ─── SECTION HEADER ─── */
 .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
@@ -1005,6 +1005,7 @@ async function fetchData(view) {
 // ════════════════════════════════════════════════════════════════════════════
 const fmtN = (n, dec=0) => n == null ? '—' : Number(n).toLocaleString('en-US', {minimumFractionDigits:dec, maximumFractionDigits:dec});
 const fmtC = (n) => n == null ? '—' : '$' + Number(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+const fmtM = (n) => n == null ? '—' : Number(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); // no currency symbol, for tables
 const fmtP = (n) => n == null ? '—' : (n*100).toFixed(2) + '%';
 const fmtPct = (n) => n == null ? '—' : n.toFixed(1) + '%';
 const fmtX = (n) => n == null ? '—' : Number(n).toFixed(2) + 'x';
@@ -1214,8 +1215,8 @@ function campaignCols() {
     { key:'impressions', right:true, render: r => fmtImpr(r.impressions) },
     { key:'clicks', right:true, render: r => fmtN(r.clicks) },
     { key:'ctr', right:true, render: r => fmtP(r.ctr) },
-    { key:'avg_cpc', right:true, render: r => fmtC(r.avg_cpc) },
-    { key:'cost', right:true, render: r => `<strong>${fmtC(r.cost)}</strong>` },
+    { key:'avg_cpc', right:true, render: r => fmtM(r.avg_cpc) },
+    { key:'cost', right:true, render: r => `<strong>${fmtM(r.cost)}</strong>` },
     { key:'conversions', right:true, render: r => fmtN(r.conversions, 1) },
     { key:'conversion_rate', right:true, render: r => fmtP(r.conversion_rate) },
     { key:'roas', right:true, render: r => `<span style="color:${r.roas>=2?'var(--green)':r.roas>=1?'var(--yellow)':'var(--red)'}">${fmtX(r.roas)}</span>` },
@@ -1231,8 +1232,8 @@ function adGroupCols() {
     { key:'impressions', right:true, render: r => fmtImpr(r.impressions) },
     { key:'clicks', right:true, render: r => fmtN(r.clicks) },
     { key:'ctr', right:true, render: r => fmtP(r.ctr) },
-    { key:'avg_cpc', right:true, render: r => fmtC(r.avg_cpc) },
-    { key:'cost', right:true, render: r => `<strong>${fmtC(r.cost)}</strong>` },
+    { key:'avg_cpc', right:true, render: r => fmtM(r.avg_cpc) },
+    { key:'cost', right:true, render: r => `<strong>${fmtM(r.cost)}</strong>` },
     { key:'conversions', right:true, render: r => fmtN(r.conversions, 1) },
     { key:'conversion_rate', right:true, render: r => fmtP(r.conversion_rate) },
     { key:'roas', right:true, render: r => `<span style="color:${r.roas>=2?'var(--green)':r.roas>=1?'var(--yellow)':'var(--red)'}">${fmtX(r.roas)}</span>` },
@@ -1241,15 +1242,15 @@ function adGroupCols() {
 
 function adCols() {
   return [
-    { key:'campaign_name', render: r => `<span class="text-muted text-sm" style="max-width:120px;display:block;overflow:hidden;text-overflow:ellipsis">${r.campaign_name}</span>` },
-    { key:'ad_group_name', render: r => `<span class="text-muted text-sm">${r.ad_group_name}</span>` },
-    { key:'_preview', render: r => `<div class="ad-preview"><div class="ad-url">${r.final_url ? new URL(r.final_url).hostname : '—'}</div><div class="ad-headline">${r.headlines || r.name}</div><div class="ad-desc">${(r.descriptions||'').slice(0,80)}${r.descriptions?.length>80?'…':''}</div></div>` },
+    { key:'campaign_name', render: r => `<span class="text-muted text-sm" style="max-width:120px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.campaign_name}</span>` },
+    { key:'ad_group_name', render: r => `<span class="text-muted text-sm" style="max-width:100px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.ad_group_name}</span>` },
+    { key:'_preview', render: r => `<div class="ad-preview"><div class="ad-url">${r.final_url ? new URL(r.final_url).hostname : '—'}</div><div class="ad-headline">${r.headlines || r.name}</div><div class="ad-desc">${r.descriptions || ''}</div></div>` },
     { key:'type', render: r => adTypeBadge(r.type) },
     { key:'status', render: r => statusBadge(r.status) },
     { key:'impressions', right:true, render: r => fmtImpr(r.impressions) },
     { key:'clicks', right:true, render: r => fmtN(r.clicks) },
     { key:'ctr', right:true, render: r => fmtP(r.ctr) },
-    { key:'cost', right:true, render: r => fmtC(r.cost) },
+    { key:'cost', right:true, render: r => fmtM(r.cost) },
     { key:'conversions', right:true, render: r => fmtN(r.conversions, 1) },
     { key:'roas', right:true, render: r => `<span style="color:${r.roas>=2?'var(--green)':r.roas>=1?'var(--yellow)':'var(--red)'}">${fmtX(r.roas)}</span>` },
   ];
@@ -1266,8 +1267,8 @@ function keywordCols() {
     { key:'impressions', right:true, render: r => fmtImpr(r.impressions) },
     { key:'clicks', right:true, render: r => fmtN(r.clicks) },
     { key:'ctr', right:true, render: r => fmtP(r.ctr) },
-    { key:'avg_cpc', right:true, render: r => fmtC(r.avg_cpc) },
-    { key:'cost', right:true, render: r => fmtC(r.cost) },
+    { key:'avg_cpc', right:true, render: r => fmtM(r.avg_cpc) },
+    { key:'cost', right:true, render: r => fmtM(r.cost) },
     { key:'conversions', right:true, render: r => fmtN(r.conversions, 1) },
     { key:'impression_share', right:true, render: r => isBar(r.impression_share) },
   ];
@@ -1282,8 +1283,8 @@ function searchTermCols() {
     { key:'impressions', right:true, render: r => fmtImpr(r.impressions) },
     { key:'clicks', right:true, render: r => fmtN(r.clicks) },
     { key:'ctr', right:true, render: r => fmtP(r.ctr) },
-    { key:'avg_cpc', right:true, render: r => fmtC(r.avg_cpc) },
-    { key:'cost', right:true, render: r => fmtC(r.cost) },
+    { key:'avg_cpc', right:true, render: r => fmtM(r.avg_cpc) },
+    { key:'cost', right:true, render: r => fmtM(r.cost) },
     { key:'conversions', right:true, render: r => fmtN(r.conversions, 1) },
     { key:'conversion_rate', right:true, render: r => fmtP(r.conversion_rate) },
   ];
